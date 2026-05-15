@@ -3,7 +3,15 @@ ktor:
     port: 8080
   application:
     modules:
+      - com.adel.plugins.DatabaseConfigKt.configureDatabase
       - com.adel.plugins.HttpKt.configureHttp
       - com.adel.plugins.SerializationKt.configureSerialization
       - com.adel.plugins.StatusPagesKt.configureStatusPages
       - com.adel.plugins.RoutingKt.configureRouting
+
+database:
+  jdbcUrl: "jdbc:postgresql://localhost:5432/wc26"
+  username: "wc26_user"
+  password: "wc26_dev_password"
+  driverClassName: "org.postgresql.Driver"
+  maximumPoolSize: 10
