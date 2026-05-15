@@ -1,9 +1,8 @@
-package com.adelachour
+package com.adel.plugins
 
 import io.ktor.server.application.*
 import io.ktor.http.*
 import io.ktor.server.plugins.cors.routing.*
-import io.ktor.server.response.*
 
 fun Application.configureHttp() {
     install(CORS) {

@@ -1,4 +1,4 @@
-package com.adelachour
+package com.adel
 
 import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode

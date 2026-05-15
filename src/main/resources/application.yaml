@@ -3,8 +3,7 @@ ktor:
     port: 8080
   application:
     modules:
-      - com.adelachour.HttpKt.configureHttp
-      - com.adelachour.SerializationKt.configureSerialization
-      - com.adelachour.ResourcesKt.configureResources
-      - com.adelachour.StatusPagesKt.configureStatusPages
-      - com.adelachour.RoutingKt.configureRouting
+      - com.adel.plugins.HttpKt.configureHttp
+      - com.adel.plugins.SerializationKt.configureSerialization
+      - com.adel.plugins.StatusPagesKt.configureStatusPages
+      - com.adel.plugins.RoutingKt.configureRouting

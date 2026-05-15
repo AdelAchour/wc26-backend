@@ -1,4 +1,4 @@
-package com.adelachour
+package com.adel.plugins
 
 import io.ktor.http.*
 import io.ktor.server.application.*

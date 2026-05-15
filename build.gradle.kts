@@ -5,7 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
-group = "com.adelachour"
+group = "com.adel"
 version = "1.0.0-SNAPSHOT"
 
 application {
