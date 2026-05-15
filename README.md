@@ -1,35 +1,39 @@
-# wc26
+# wc26-backend
 
-This project was created using the [Ktor Project Generator](https://start.ktor.io).
+Ktor backend for a FIFA World Cup 2026 fan social app. Part of a portfolio
+project showcasing modern backend + Android development.
 
-Here are some useful links to get you started:
- * [Ktor Documentation](https://ktor.io/docs/home.html)
- * [Ktor GitHub page](https://github.com/ktorio/ktor)
- * [Ktor Slack chat](https://app.slack.com/client/T09229ZC6/C0A974TJ9). [Request an invite](https://surveys.jetbrains.com/s3/kotlin-slack-sign-up).
+**Status:** under active development.
 
+## Stack
 
-## Features
-Here's a list of features included in this project:
+- Kotlin + Ktor
+- PostgreSQL 16
+- Exposed (SQL framework)
+- Flyway (migrations)
+- Docker + Docker Compose
+- Oracle Cloud (planned deployment)
 
-| Name | Description |
-|------|-------------|
-| [Resources](https://start.ktor.io/p/io.ktor/server-resources) | Provides type-safe routing |
-| [CORS](https://start.ktor.io/p/io.ktor/server-cors) | Enables Cross-Origin Resource Sharing (CORS) |
-| [Call Logging](https://start.ktor.io/p/io.ktor/server-call-logging) | Logs client requests |
-| [Status Pages](https://start.ktor.io/p/io.ktor/server-status-pages) | Provides exception handling for routes |
-| [Content Negotiation](https://start.ktor.io/p/io.ktor/server-content-negotiation) | Provides automatic content conversion according to Content-Type and Accept headers |
-| [kotlinx.serialization](https://start.ktor.io/p/io.ktor/server-kotlinx-serialization) | Handles JSON serialization using kotlinx.serialization library |
+## Local development
 
+Prerequisites: JDK 21, Docker.
 
-## Building & Running
-To build or run the project, use one of the following tasks:
+```bash
+# Start the database
+docker compose up -d
 
-
-| Task | Description |
-|------|-------------|
-
-If the server starts successfully, you'll see the following output:
+# Run the Ktor server
+./gradlew run
 ```
-2024-12-04 14:32:45.584 [main] INFO  Application - Application started in 0.303 seconds.
-2024-12-04 14:32:45.682 [main] INFO  Application - Responding at http://0.0.0.0:8080
-```
+
+The API will be available at `http://localhost:8080`.
+pgAdmin (web-based DB GUI) at `http://localhost:5050`.
+
+## Architecture
+
+_Coming soon — schema diagram, API surface, deployment topology._
+
+## Related repos
+
+- `wc26-android` (coming soon)
+- `wc26-kmp` (coming soon)
