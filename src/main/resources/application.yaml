@@ -1,0 +1,10 @@
+ktor:
+  deployment:
+    port: 8080
+  application:
+    modules:
+      - com.adelachour.HttpKt.configureHttp
+      - com.adelachour.SerializationKt.configureSerialization
+      - com.adelachour.ResourcesKt.configureResources
+      - com.adelachour.StatusPagesKt.configureStatusPages
+      - com.adelachour.RoutingKt.configureRouting
