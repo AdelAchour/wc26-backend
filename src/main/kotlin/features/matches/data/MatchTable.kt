@@ -1,4 +1,4 @@
-package com.adel.features.matches
+package com.adel.features.matches.data
 
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.timestampWithTimeZone
