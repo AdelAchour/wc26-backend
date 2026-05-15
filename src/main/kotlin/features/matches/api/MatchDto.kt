@@ -1,8 +1,6 @@
 package com.adel.features.matches.api
 
 import com.adel.features.matches.domain.Match
-import com.adel.features.matches.domain.MatchStatus
-import com.adel.features.matches.service.PaginatedResult
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -19,13 +17,6 @@ data class MatchDto(
     val awayScore: Short?,
 )
 
-@Serializable
-data class PageDto<T>(
-    val items: List<T>,
-    val total: Long,
-    val limit: Int,
-    val offset: Long,
-)
 
 fun Match.toDto(): MatchDto = MatchDto(
     id = id,
@@ -38,11 +29,4 @@ fun Match.toDto(): MatchDto = MatchDto(
     status = status.value,
     homeScore = homeScore,
     awayScore = awayScore,
-)
-
-fun PaginatedResult<Match>.toDto(): PageDto<MatchDto> = PageDto(
-    items = items.map { it.toDto() },
-    total = total,
-    limit = limit,
-    offset = offset,
 )

@@ -1,5 +1,6 @@
 package com.adel.features.matches.service
 
+import com.adel.common.pagination.PaginatedResult
 import com.adel.features.matches.data.MatchRepository
 import com.adel.features.matches.domain.Match
 import com.adel.features.matches.domain.MatchStatus
@@ -20,10 +21,3 @@ class MatchService(
 
     suspend fun getMatch(id: Long): Match? = repository.findById(id)
 }
-
-data class PaginatedResult<T>(
-    val items: List<T>,
-    val total: Long,
-    val limit: Int,
-    val offset: Long,
-)

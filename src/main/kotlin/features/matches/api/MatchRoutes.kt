@@ -1,5 +1,6 @@
 package com.adel.features.matches.api
 
+import com.adel.common.pagination.toDto
 import com.adel.features.matches.domain.MatchStatus
 import com.adel.features.matches.service.MatchService
 import io.ktor.http.*
@@ -21,7 +22,7 @@ fun Route.matchRoutes(service: MatchService) {
                 ?: 0L
 
             val result = service.listMatches(status, stage, limit, offset)
-            call.respond(result.toDto())
+            call.respond(result.toDto { it.toDto() })
         }
 
         get("{id}") {

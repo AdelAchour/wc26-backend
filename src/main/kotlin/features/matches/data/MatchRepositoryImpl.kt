@@ -23,7 +23,8 @@ class MatchRepositoryImpl : MatchRepository {
                 stage?.let { andWhere { MatchTable.stage eq it } }
             }
             .orderBy(MatchTable.kickoffAt)
-            .limit(limit).offset(offset)
+            .limit(limit)
+            .offset(offset)
             .map { it.toMatch() }
     }
 
