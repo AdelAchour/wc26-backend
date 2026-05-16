@@ -14,7 +14,7 @@ fun Route.userRoutes(service: UserService) {
             val user = service.getUser(id)
                 ?: return@get call.respond(HttpStatusCode.NotFound, "User not found")
 
-            call.respond(user.toDto())
+            call.respond(user.toPublicDto())
         }
     }
 }

@@ -21,6 +21,21 @@ fun Route.postRoutes(service: PostService) {
     // populate likedByCurrentUser. If no token (or invalid), reads still
     // work but likedByCurrentUser will be false for every post.
     authenticate(JWT_AUTH_NAME, optional = true) {
+        route("/posts") {
+            get {
+                val cursor = call.request.queryParameters["cursor"]?.let { Cursor.decode(it) }
+                val limit = call.request.queryParameters["limit"]?.toIntOrNull()
+                    ?.coerceIn(1, 100)
+                    ?: 20
+
+                @Suppress("UNUSED_VARIABLE")
+                val currentUserId = call.userIdOrNull()
+
+                val result = service.listAllPosts(cursor, limit)
+                call.respond(result.toDto { it.toDto() })
+            }
+        }
+        
         route("/matches/{matchId}/posts") {
             get {
                 val matchId = call.parameters["matchId"]?.toLongOrNull()

@@ -7,8 +7,14 @@ import com.adel.features.posts.domain.PostWithAuthor
 
 interface PostRepository {
     suspend fun findByIdWithAuthor(id: Long): PostWithAuthor?
+
     suspend fun findByMatchWithAuthor(
         matchId: Long,
+        cursor: Cursor?,
+        limit: Int,
+    ): CursorPage<PostWithAuthor>
+
+    suspend fun findAllWithAuthor(
         cursor: Cursor?,
         limit: Int,
     ): CursorPage<PostWithAuthor>
