@@ -1,12 +1,11 @@
 package com.adel.features.matches.data
 
+import com.adel.common.database.dbQuery
 import com.adel.features.matches.domain.Match
 import com.adel.features.matches.domain.MatchStatus
-import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.andWhere
 import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 
 class MatchRepositoryImpl : MatchRepository {
 
@@ -45,9 +44,6 @@ class MatchRepositoryImpl : MatchRepository {
             }
             .count()
     }
-
-    private suspend fun <T> dbQuery(block: suspend () -> T): T =
-        newSuspendedTransaction(Dispatchers.IO) { block() }
 
     private fun ResultRow.toMatch(): Match = Match(
         id = this[MatchTable.id],

@@ -1,12 +1,11 @@
 package com.adel.features.users.data
 
+import com.adel.common.database.dbQuery
 import com.adel.features.users.domain.User
 import com.adel.features.users.domain.UserRole
-import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 
 class UserRepositoryImpl : UserRepository {
 
@@ -53,9 +52,6 @@ class UserRepositoryImpl : UserRepository {
             .empty()
             .not()
     }
-
-    private suspend fun <T> dbQuery(block: suspend () -> T): T =
-        newSuspendedTransaction(Dispatchers.IO) { block() }
 
     private fun ResultRow.toUser(): User = User(
         id = this[UserTable.id],
