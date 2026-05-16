@@ -10,6 +10,7 @@ version = "1.0.0-SNAPSHOT"
 
 application {
     mainClass = "io.ktor.server.netty.EngineMain"
+    applicationDefaultJvmArgs = listOf("-Duser.timezone=UTC")
 }
 
 kotlin {
