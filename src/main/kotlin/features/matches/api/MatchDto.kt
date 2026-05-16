@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class MatchDto(
     val id: Long,
+    val gameNumber: Short,
     val homeTeam: String,
     val awayTeam: String,
     val stage: String,
@@ -20,6 +21,7 @@ data class MatchDto(
 
 fun Match.toDto(): MatchDto = MatchDto(
     id = id,
+    gameNumber = gameNumber,
     homeTeam = homeTeam,
     awayTeam = awayTeam,
     stage = stage,

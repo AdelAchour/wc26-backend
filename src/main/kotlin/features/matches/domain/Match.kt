@@ -4,6 +4,7 @@ import java.time.OffsetDateTime
 
 data class Match(
     val id: Long,
+    val gameNumber: Short,
     val homeTeam: String,
     val awayTeam: String,
     val stage: String,

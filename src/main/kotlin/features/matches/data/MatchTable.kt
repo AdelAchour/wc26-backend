@@ -5,6 +5,7 @@ import org.jetbrains.exposed.sql.javatime.timestampWithTimeZone
 
 object MatchTable : Table("matches") {
     val id = long("id").autoIncrement()
+    val gameNumber = short("game_number")
     val homeTeam = varchar("home_team", 100)
     val awayTeam = varchar("away_team", 100)
     val stage = varchar("stage", 50)

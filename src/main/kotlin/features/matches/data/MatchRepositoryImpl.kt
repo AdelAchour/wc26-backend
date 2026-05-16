@@ -51,6 +51,7 @@ class MatchRepositoryImpl : MatchRepository {
 
     private fun ResultRow.toMatch(): Match = Match(
         id = this[MatchTable.id],
+        gameNumber = this[MatchTable.gameNumber],
         homeTeam = this[MatchTable.homeTeam],
         awayTeam = this[MatchTable.awayTeam],
         stage = this[MatchTable.stage],
