@@ -45,6 +45,9 @@ dependencies {
 
     implementation(libs.bcrypt)
 
+    implementation(ktorLibs.server.auth)
+    implementation(ktorLibs.server.auth.jwt)
+
     testImplementation(kotlin("test"))
     testImplementation(ktorLibs.server.testHost)
 }

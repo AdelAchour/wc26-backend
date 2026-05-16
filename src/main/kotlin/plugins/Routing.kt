@@ -1,5 +1,6 @@
 package com.adel.plugins
 
+import com.adel.config.loadJwtConfig
 import com.adel.features.auth.api.authRoutes
 import com.adel.features.auth.di.AuthComponent
 import com.adel.features.matches.api.matchRoutes
@@ -11,9 +12,11 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
 fun Application.configureRouting() {
+    val jwtConfig = loadJwtConfig()
+
     val matchComponent = MatchComponent()
     val userComponent = UserComponent()
-    val authComponent = AuthComponent(userComponent.repository)
+    val authComponent = AuthComponent(userComponent.repository, jwtConfig)
 
     routing {
         get("/") {

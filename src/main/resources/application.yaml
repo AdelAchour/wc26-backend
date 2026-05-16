@@ -15,3 +15,10 @@ database:
   password: "wc26_dev_password"
   driverClassName: "org.postgresql.Driver"
   maximumPoolSize: 10
+
+jwt:
+  secret: "$JWT_SECRET:dev-secret-do-not-use-in-production-please-change-this-to-something-long-and-random"
+  issuer: "wc26-backend"
+  audience: "wc26-clients"
+  realm: "WC26"
+  expirationHours: 24
