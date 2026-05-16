@@ -10,15 +10,15 @@ ktor:
       - com.adel.plugins.RoutingKt.configureRouting
 
 database:
-  jdbcUrl: "jdbc:postgresql://localhost:5432/wc26"
-  username: "wc26_user"
-  password: "wc26_dev_password"
+  jdbcUrl: "$DATABASE_URL:jdbc:postgresql://localhost:5432/wc26"
+  username: "$DATABASE_USER:wc26_user"
+  password: "$DATABASE_PASSWORD:wc26_dev_password"
   driverClassName: "org.postgresql.Driver"
   maximumPoolSize: 10
 
 jwt:
   secret: "$JWT_SECRET:dev-secret-do-not-use-in-production-please-change-this-to-something-long-and-random"
-  issuer: "wc26-backend"
-  audience: "wc26-clients"
+  issuer: "$JWT_ISSUER:wc26-backend"
+  audience: "$JWT_AUDIENCE:wc26-clients"
   realm: "WC26"
   expirationHours: 24
