@@ -27,11 +27,13 @@ class UserRepositoryImpl : UserRepository {
 
     override suspend fun create(
         email: String,
+        username: String,
         passwordHash: String,
         displayName: String,
     ): User = dbQuery {
         val id = UserTable.insert {
             it[UserTable.email] = email
+            it[UserTable.username] = username
             it[UserTable.passwordHash] = passwordHash
             it[UserTable.displayName] = displayName
             // role, created_at, updated_at use DB defaults
@@ -53,9 +55,19 @@ class UserRepositoryImpl : UserRepository {
             .not()
     }
 
+    override suspend fun usernameExists(username: String): Boolean = dbQuery {
+        UserTable
+            .selectAll()
+            .where { UserTable.username eq username }
+            .limit(1)
+            .empty()
+            .not()
+    }
+
     private fun ResultRow.toUser(): User = User(
         id = this[UserTable.id],
         email = this[UserTable.email],
+        username = this[UserTable.username],
         passwordHash = this[UserTable.passwordHash],
         displayName = this[UserTable.displayName],
         avatarUrl = this[UserTable.avatarUrl],

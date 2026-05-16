@@ -9,8 +9,6 @@ import com.adel.features.users.service.UserService
 import com.adel.plugins.JWT_AUTH_NAME
 import io.ktor.http.*
 import io.ktor.server.auth.authenticate
-import io.ktor.server.auth.jwt.JWTPrincipal
-import io.ktor.server.auth.principal
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -26,6 +24,7 @@ fun Route.authRoutes(
 
             when (val result = service.register(
                 email = request.email,
+                username = request.username,
                 password = request.password,
                 displayName = request.displayName,
             )) {
@@ -35,17 +34,22 @@ fun Route.authRoutes(
                         token = result.token,
                         userId = result.user.id,
                         email = result.user.email,
+                        username = result.user.username,
                         displayName = result.user.displayName,
                     )
                 )
                 RegisterResult.InvalidEmail ->
                     call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid email format"))
+                RegisterResult.InvalidUsername ->
+                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Username must be 3-20 characters, start with a letter, contain only lowercase letters, digits, and underscores"))
                 RegisterResult.PasswordTooShort ->
                     call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Password must be at least 8 characters"))
                 RegisterResult.DisplayNameTooShort ->
                     call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Display name must be at least 2 characters"))
                 RegisterResult.EmailAlreadyTaken ->
                     call.respond(HttpStatusCode.Conflict, mapOf("error" to "Email already registered"))
+                RegisterResult.UsernameAlreadyTaken ->
+                    call.respond(HttpStatusCode.Conflict, mapOf("error" to "Username already taken"))
             }
         }
 
@@ -62,6 +66,7 @@ fun Route.authRoutes(
                         token = result.token,
                         userId = result.user.id,
                         email = result.user.email,
+                        username = result.user.username,
                         displayName = result.user.displayName,
                     )
                 )

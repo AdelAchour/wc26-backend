@@ -7,8 +7,10 @@ interface UserRepository {
     suspend fun findByEmail(email: String): User?
     suspend fun create(
         email: String,
+        username: String,
         passwordHash: String,
         displayName: String,
     ): User
     suspend fun emailExists(email: String): Boolean
+    suspend fun usernameExists(username: String): Boolean
 }

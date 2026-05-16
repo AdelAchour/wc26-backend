@@ -17,6 +17,7 @@ data class PostDto(
 @Serializable
 data class PostAuthorDto(
     val id: Long,
+    val username: String,
     val displayName: String,
     val avatarUrl: String?,
 )
@@ -38,6 +39,7 @@ fun PostWithAuthor.toDto(likedByCurrentUser: Boolean = false): PostDto = PostDto
     matchId = post.matchId,
     author = PostAuthorDto(
         id = author.id,
+        username = author.username,
         displayName = author.displayName,
         avatarUrl = author.avatarUrl,
     ),

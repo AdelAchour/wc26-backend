@@ -137,6 +137,7 @@ class PostRepositoryImpl : PostRepository {
         author = User(
             id = this[UserTable.id],
             email = this[UserTable.email],
+            username = this[UserTable.username],
             passwordHash = this[UserTable.passwordHash],
             displayName = this[UserTable.displayName],
             avatarUrl = this[UserTable.avatarUrl],

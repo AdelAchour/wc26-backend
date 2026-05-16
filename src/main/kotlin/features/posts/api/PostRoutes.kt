@@ -35,7 +35,7 @@ fun Route.postRoutes(service: PostService) {
                 call.respond(result.toDto { it.toDto() })
             }
         }
-        
+
         route("/matches/{matchId}/posts") {
             get {
                 val matchId = call.parameters["matchId"]?.toLongOrNull()

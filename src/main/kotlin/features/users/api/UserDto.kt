@@ -11,6 +11,7 @@ import kotlinx.serialization.Serializable
 data class UserDto(
     val id: Long,
     val email: String,
+    val username: String,
     val displayName: String,
     val avatarUrl: String?,
     val role: String,
@@ -24,6 +25,7 @@ data class UserDto(
 @Serializable
 data class UserPublicDto(
     val id: Long,
+    val username: String,
     val displayName: String,
     val avatarUrl: String?,
     val createdAt: String,
@@ -32,6 +34,7 @@ data class UserPublicDto(
 fun User.toDto(): UserDto = UserDto(
     id = id,
     email = email,
+    username = username,
     displayName = displayName,
     avatarUrl = avatarUrl,
     role = role.value,
@@ -40,6 +43,7 @@ fun User.toDto(): UserDto = UserDto(
 
 fun User.toPublicDto(): UserPublicDto = UserPublicDto(
     id = id,
+    username = username,
     displayName = displayName,
     avatarUrl = avatarUrl,
     createdAt = createdAt.toString(),

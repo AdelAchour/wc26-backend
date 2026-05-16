@@ -5,7 +5,8 @@ import org.jetbrains.exposed.sql.javatime.timestampWithTimeZone
 
 object UserTable : Table("users") {
     val id = long("id").autoIncrement()
-    val email = text("email")              // CITEXT in DB; Exposed treats as text
+    val email = text("email")
+    val username = text("username")
     val passwordHash = text("password_hash")
     val displayName = varchar("display_name", 50)
     val avatarUrl = text("avatar_url").nullable()
