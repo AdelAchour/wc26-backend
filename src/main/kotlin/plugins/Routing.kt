@@ -18,6 +18,9 @@ fun Application.configureRouting() {
     val userComponent = UserComponent()
     val authComponent = AuthComponent(userComponent.repository, jwtConfig)
 
+    // Install auth using components wired above
+    configureAuthentication(jwtConfig, authComponent.jwtService)
+
     routing {
         get("/") {
             call.respondText("WC26 Backend is alive ⚽ — 🇨🇦🇲🇽🇺🇸")
@@ -25,6 +28,9 @@ fun Application.configureRouting() {
 
         matchRoutes(matchComponent.service)
         userRoutes(userComponent.service)
-        authRoutes(authComponent.service)
+        authRoutes(
+            service = authComponent.service,
+            userService = userComponent.service,
+        )
     }
 }

@@ -3,12 +3,21 @@ package com.adel.features.auth.api
 import com.adel.features.auth.service.AuthService
 import com.adel.features.auth.service.LoginResult
 import com.adel.features.auth.service.RegisterResult
+import com.adel.features.users.api.toDto
+import com.adel.features.users.service.UserService
+import com.adel.plugins.JWT_AUTH_NAME
 import io.ktor.http.*
+import io.ktor.server.auth.authenticate
+import io.ktor.server.auth.jwt.JWTPrincipal
+import io.ktor.server.auth.principal
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Route.authRoutes(service: AuthService) {
+fun Route.authRoutes(
+    service: AuthService,
+    userService: UserService,
+) {
     route("/auth") {
 
         post("register") {
@@ -57,6 +66,22 @@ fun Route.authRoutes(service: AuthService) {
                 )
                 LoginResult.InvalidCredentials ->
                     call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Invalid credentials"))
+            }
+        }
+
+        // ---- Protected routes below ----
+        authenticate(JWT_AUTH_NAME) {
+            get("me") {
+                val principal = call.principal<JWTPrincipal>()
+                    ?: return@get call.respond(HttpStatusCode.Unauthorized)
+
+                val userId = principal.payload.subject.toLongOrNull()
+                    ?: return@get call.respond(HttpStatusCode.Unauthorized)
+
+                val user = userService.getUser(userId)
+                    ?: return@get call.respond(HttpStatusCode.NotFound, mapOf("error" to "User not found"))
+
+                call.respond(user.toDto())
             }
         }
     }
