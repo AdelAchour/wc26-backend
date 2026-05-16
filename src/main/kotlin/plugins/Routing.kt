@@ -3,6 +3,8 @@ package com.adel.plugins
 import com.adel.config.loadJwtConfig
 import com.adel.features.auth.api.authRoutes
 import com.adel.features.auth.di.AuthComponent
+import com.adel.features.likes.api.likeRoutes
+import com.adel.features.likes.di.LikeComponent
 import com.adel.features.matches.api.matchRoutes
 import com.adel.features.matches.di.MatchComponent
 import com.adel.features.posts.api.postRoutes
@@ -19,6 +21,7 @@ fun Application.configureRouting() {
     val matchComponent = MatchComponent()
     val userComponent = UserComponent()
     val postComponent = PostComponent(matchComponent.repository)
+    val likeComponent = LikeComponent(postComponent.repository)
     val authComponent = AuthComponent(userComponent.repository, jwtConfig)
 
     // Install auth using components wired above
@@ -31,10 +34,8 @@ fun Application.configureRouting() {
 
         matchRoutes(matchComponent.service)
         userRoutes(userComponent.service)
-        postRoutes(postComponent.service)
-        authRoutes(
-            service = authComponent.service,
-            userService = userComponent.service,
-        )
+        postRoutes(postComponent.service, likeComponent.service)
+        likeRoutes(likeComponent.service)
+        authRoutes(authComponent.service, userComponent.service)
     }
 }

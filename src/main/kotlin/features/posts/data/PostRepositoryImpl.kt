@@ -10,6 +10,7 @@ import com.adel.features.users.domain.User
 import com.adel.features.users.domain.UserRole
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SortOrder
+import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.andWhere
@@ -17,6 +18,7 @@ import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.update
 
 class PostRepositoryImpl : PostRepository {
 
@@ -146,4 +148,23 @@ class PostRepositoryImpl : PostRepository {
             updatedAt = this[UserTable.updatedAt],
         ),
     )
+
+    override suspend fun incrementLikeCount(postId: Long): Boolean = dbQuery {
+        val updated = PostTable.update({ PostTable.id eq postId }) {
+            with(SqlExpressionBuilder) {
+                it.update(PostTable.likeCount, PostTable.likeCount + 1)
+            }
+        }
+        updated > 0
+    }
+
+    override suspend fun decrementLikeCount(postId: Long): Boolean = dbQuery {
+        // CHECK constraint on the table prevents going negative, so this is safe.
+        val updated = PostTable.update({ PostTable.id eq postId }) {
+            with(SqlExpressionBuilder) {
+                it.update(PostTable.likeCount, PostTable.likeCount - 1)
+            }
+        }
+        updated > 0
+    }
 }

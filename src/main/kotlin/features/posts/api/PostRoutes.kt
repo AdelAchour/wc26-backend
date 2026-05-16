@@ -1,9 +1,11 @@
 package com.adel.features.posts.api
 
 import com.adel.common.pagination.Cursor
-import com.adel.common.pagination.toDto
+import com.adel.common.pagination.CursorPageDto
 import com.adel.common.security.requireUserId
 import com.adel.common.security.userIdOrNull
+import com.adel.features.likes.service.LikeService
+import com.adel.features.posts.domain.PostWithAuthor
 import com.adel.features.posts.service.CreatePostResult
 import com.adel.features.posts.service.DeletePostResult
 import com.adel.features.posts.service.PostService
@@ -14,27 +16,13 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Route.postRoutes(service: PostService) {
+fun Route.postRoutes(
+    service: PostService,
+    likeService: LikeService,
+) {
 
     // -------- Public read endpoints with OPTIONAL auth --------
-    // If a valid token is provided, we know the current user and can
-    // populate likedByCurrentUser. If no token (or invalid), reads still
-    // work but likedByCurrentUser will be false for every post.
     authenticate(JWT_AUTH_NAME, optional = true) {
-        route("/posts") {
-            get {
-                val cursor = call.request.queryParameters["cursor"]?.let { Cursor.decode(it) }
-                val limit = call.request.queryParameters["limit"]?.toIntOrNull()
-                    ?.coerceIn(1, 100)
-                    ?: 20
-
-                @Suppress("UNUSED_VARIABLE")
-                val currentUserId = call.userIdOrNull()
-
-                val result = service.listAllPosts(cursor, limit)
-                call.respond(result.toDto { it.toDto() })
-            }
-        }
 
         route("/matches/{matchId}/posts") {
             get {
@@ -42,16 +30,22 @@ fun Route.postRoutes(service: PostService) {
                     ?: return@get call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid match id"))
 
                 val cursor = call.request.queryParameters["cursor"]?.let { Cursor.decode(it) }
-                val limit = call.request.queryParameters["limit"]?.toIntOrNull()
-                    ?.coerceIn(1, 100)
-                    ?: 20
-
-                // userIdOrNull will be wired into likedByCurrentUser in Stage 3
-                @Suppress("UNUSED_VARIABLE")
-                val currentUserId = call.userIdOrNull()
+                val limit = call.request.queryParameters["limit"]?.toIntOrNull()?.coerceIn(1, 100) ?: 20
+                val viewerId = call.userIdOrNull()
 
                 val result = service.listPostsForMatch(matchId, cursor, limit)
-                call.respond(result.toDto { it.toDto() })
+                call.respond(buildPageDto(result.items, result.nextCursor, viewerId, likeService))
+            }
+        }
+
+        route("/posts") {
+            get {
+                val cursor = call.request.queryParameters["cursor"]?.let { Cursor.decode(it) }
+                val limit = call.request.queryParameters["limit"]?.toIntOrNull()?.coerceIn(1, 100) ?: 20
+                val viewerId = call.userIdOrNull()
+
+                val result = service.listAllPosts(cursor, limit)
+                call.respond(buildPageDto(result.items, result.nextCursor, viewerId, likeService))
             }
         }
 
@@ -60,19 +54,21 @@ fun Route.postRoutes(service: PostService) {
                 val id = call.parameters["id"]?.toLongOrNull()
                     ?: return@get call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid post id"))
 
-                @Suppress("UNUSED_VARIABLE")
-                val currentUserId = call.userIdOrNull()
-
+                val viewerId = call.userIdOrNull()
                 val post = service.getPost(id)
                     ?: return@get call.respond(HttpStatusCode.NotFound, mapOf("error" to "Post not found"))
 
-                call.respond(post.toDto())
+                val likedByCurrentUser = viewerId != null &&
+                        likeService.whichArePostsLikedBy(viewerId, listOf(post.post.id)).isNotEmpty()
+
+                call.respond(post.toDto(likedByCurrentUser))
             }
         }
     }
 
-    // -------- Write endpoints (REQUIRED auth) --------
+    // -------- Write endpoints (required auth) --------
     authenticate(JWT_AUTH_NAME) {
+
         post("/matches/{matchId}/posts") {
             val matchId = call.parameters["matchId"]?.toLongOrNull()
                 ?: return@post call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid match id"))
@@ -82,10 +78,9 @@ fun Route.postRoutes(service: PostService) {
 
             when (val result = service.createPost(userId, matchId, request.content)) {
                 is CreatePostResult.Success -> {
-                    // We need to fetch with author for the response DTO
                     val withAuthor = service.getPost(result.post.id)
                     if (withAuthor != null) {
-                        call.respond(HttpStatusCode.Created, withAuthor.toDto())
+                        call.respond(HttpStatusCode.Created, withAuthor.toDto(likedByCurrentUser = false))
                     } else {
                         call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Post created but could not be fetched"))
                     }
@@ -112,4 +107,22 @@ fun Route.postRoutes(service: PostService) {
             }
         }
     }
+}
+
+/**
+ * Builds a paginated DTO response, enriching each post with likedByCurrentUser
+ * based on the viewer's actual likes. Uses a single batched query to avoid N+1.
+ */
+private suspend fun buildPageDto(
+    items: List<PostWithAuthor>,
+    nextCursor: String?,
+    viewerId: Long?,
+    likeService: LikeService,
+): CursorPageDto<PostDto> {
+    val likedSet: Set<Long> = if (viewerId != null) {
+        likeService.whichArePostsLikedBy(viewerId, items.map { it.post.id })
+    } else emptySet()
+
+    val dtoItems = items.map { it.toDto(likedByCurrentUser = it.post.id in likedSet) }
+    return CursorPageDto(items = dtoItems, nextCursor = nextCursor)
 }

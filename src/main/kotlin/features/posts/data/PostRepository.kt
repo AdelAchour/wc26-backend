@@ -22,4 +22,7 @@ interface PostRepository {
     suspend fun create(userId: Long, matchId: Long, content: String): Post
     suspend fun findById(id: Long): Post?
     suspend fun delete(id: Long): Boolean
+
+    suspend fun incrementLikeCount(postId: Long): Boolean
+    suspend fun decrementLikeCount(postId: Long): Boolean
 }
