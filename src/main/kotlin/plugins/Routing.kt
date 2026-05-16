@@ -5,6 +5,8 @@ import com.adel.features.auth.api.authRoutes
 import com.adel.features.auth.di.AuthComponent
 import com.adel.features.matches.api.matchRoutes
 import com.adel.features.matches.di.MatchComponent
+import com.adel.features.posts.api.postRoutes
+import com.adel.features.posts.di.PostComponent
 import com.adel.features.users.api.userRoutes
 import com.adel.features.users.di.UserComponent
 import io.ktor.server.application.*
@@ -16,6 +18,7 @@ fun Application.configureRouting() {
 
     val matchComponent = MatchComponent()
     val userComponent = UserComponent()
+    val postComponent = PostComponent()
     val authComponent = AuthComponent(userComponent.repository, jwtConfig)
 
     // Install auth using components wired above
@@ -28,6 +31,7 @@ fun Application.configureRouting() {
 
         matchRoutes(matchComponent.service)
         userRoutes(userComponent.service)
+        postRoutes(postComponent.service)
         authRoutes(
             service = authComponent.service,
             userService = userComponent.service,
