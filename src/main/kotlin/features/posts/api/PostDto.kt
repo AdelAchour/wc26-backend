@@ -21,6 +21,11 @@ data class PostAuthorDto(
     val avatarUrl: String?,
 )
 
+@Serializable
+data class CreatePostRequest(
+    val content: String,
+)
+
 /**
  * Convert a PostWithAuthor to its wire-format DTO.
  *

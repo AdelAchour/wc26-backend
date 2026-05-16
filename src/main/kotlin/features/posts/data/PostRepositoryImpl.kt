@@ -10,8 +10,11 @@ import com.adel.features.users.domain.User
 import com.adel.features.users.domain.UserRole
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SortOrder
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.andWhere
+import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.selectAll
 
@@ -55,6 +58,43 @@ class PostRepositoryImpl : PostRepository {
 
         CursorPage(items, nextCursor)
     }
+
+    override suspend fun create(userId: Long, matchId: Long, content: String): Post = dbQuery {
+        val id = PostTable.insert {
+            it[PostTable.userId] = userId
+            it[PostTable.matchId] = matchId
+            it[PostTable.content] = content
+        } get PostTable.id
+
+        PostTable
+            .selectAll()
+            .where { PostTable.id eq id }
+            .map { it.toPost() }
+            .single()
+    }
+
+    override suspend fun findById(id: Long): Post? = dbQuery {
+        PostTable
+            .selectAll()
+            .where { PostTable.id eq id }
+            .map { it.toPost() }
+            .singleOrNull()
+    }
+
+    override suspend fun delete(id: Long): Boolean = dbQuery {
+        val rowsDeleted = PostTable.deleteWhere { PostTable.id eq id }
+        rowsDeleted > 0
+    }
+
+    private fun ResultRow.toPost(): Post = Post(
+        id = this[PostTable.id],
+        userId = this[PostTable.userId],
+        matchId = this[PostTable.matchId],
+        content = this[PostTable.content],
+        likeCount = this[PostTable.likeCount],
+        createdAt = this[PostTable.createdAt],
+        updatedAt = this[PostTable.updatedAt],
+    )
 
     private fun ResultRow.toPostWithAuthor(): PostWithAuthor = PostWithAuthor(
         post = Post(

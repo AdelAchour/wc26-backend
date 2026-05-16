@@ -5,6 +5,6 @@ import com.adel.features.matches.data.MatchRepositoryImpl
 import com.adel.features.matches.service.MatchService
 
 class MatchComponent {
-    private val repository: MatchRepository by lazy { MatchRepositoryImpl() }
+    val repository: MatchRepository by lazy { MatchRepositoryImpl() }
     val service: MatchService by lazy { MatchService(repository) }
 }

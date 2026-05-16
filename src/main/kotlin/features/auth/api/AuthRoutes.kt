@@ -1,5 +1,6 @@
 package com.adel.features.auth.api
 
+import com.adel.common.security.requireUserId
 import com.adel.features.auth.service.AuthService
 import com.adel.features.auth.service.LoginResult
 import com.adel.features.auth.service.RegisterResult
@@ -72,11 +73,7 @@ fun Route.authRoutes(
         // ---- Protected routes below ----
         authenticate(JWT_AUTH_NAME) {
             get("me") {
-                val principal = call.principal<JWTPrincipal>()
-                    ?: return@get call.respond(HttpStatusCode.Unauthorized)
-
-                val userId = principal.payload.subject.toLongOrNull()
-                    ?: return@get call.respond(HttpStatusCode.Unauthorized)
+                val userId = call.requireUserId()
 
                 val user = userService.getUser(userId)
                     ?: return@get call.respond(HttpStatusCode.NotFound, mapOf("error" to "User not found"))

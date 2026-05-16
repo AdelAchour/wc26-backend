@@ -2,7 +2,6 @@ package com.adel.features.users.api
 
 import com.adel.features.users.service.UserService
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 

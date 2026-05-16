@@ -18,7 +18,7 @@ fun Application.configureRouting() {
 
     val matchComponent = MatchComponent()
     val userComponent = UserComponent()
-    val postComponent = PostComponent()
+    val postComponent = PostComponent(matchComponent.repository)
     val authComponent = AuthComponent(userComponent.repository, jwtConfig)
 
     // Install auth using components wired above

@@ -13,7 +13,7 @@ interface PostRepository {
         limit: Int,
     ): CursorPage<PostWithAuthor>
 
-    // Write operations come in Stage 2:
-    // suspend fun create(userId: Long, matchId: Long, content: String): Post
-    // suspend fun deleteOwnedBy(postId: Long, userId: Long): Boolean
+    suspend fun create(userId: Long, matchId: Long, content: String): Post
+    suspend fun findById(id: Long): Post?
+    suspend fun delete(id: Long): Boolean
 }
