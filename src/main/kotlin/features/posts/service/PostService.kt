@@ -27,6 +27,13 @@ class PostService(
     ): CursorPage<PostWithAuthor> =
         repository.findAllWithAuthor(cursor, limit)
 
+    suspend fun listPostsByUser(
+        userId: Long,
+        cursor: Cursor?,
+        limit: Int,
+    ): CursorPage<PostWithAuthor> =
+        repository.findByUserWithAuthor(userId, cursor, limit)
+
     suspend fun createPost(
         userId: Long,
         matchId: Long,

@@ -49,6 +49,20 @@ fun Route.postRoutes(
             }
         }
 
+        route("/users/{userId}/posts") {
+            get {
+                val userId = call.parameters["userId"]?.toLongOrNull()
+                    ?: return@get call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid user id"))
+
+                val cursor = call.request.queryParameters["cursor"]?.let { Cursor.decode(it) }
+                val limit = call.request.queryParameters["limit"]?.toIntOrNull()?.coerceIn(1, 100) ?: 20
+                val viewerId = call.userIdOrNull()
+
+                val result = service.listPostsByUser(userId, cursor, limit)
+                call.respond(buildPageDto(result.items, result.nextCursor, viewerId, likeService))
+            }
+        }
+
         route("/posts/{id}") {
             get {
                 val id = call.parameters["id"]?.toLongOrNull()

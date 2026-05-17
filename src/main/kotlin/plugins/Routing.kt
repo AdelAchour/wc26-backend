@@ -7,6 +7,7 @@ import com.adel.features.comments.api.commentRoutes
 import com.adel.features.comments.di.CommentComponent
 import com.adel.features.likes.api.likeRoutes
 import com.adel.features.likes.di.LikeComponent
+import com.adel.features.matches.api.adminMatchRoutes
 import com.adel.features.matches.api.matchRoutes
 import com.adel.features.matches.di.MatchComponent
 import com.adel.features.posts.api.postRoutes
@@ -36,6 +37,7 @@ fun Application.configureRouting() {
         }
 
         matchRoutes(matchComponent.service)
+        adminMatchRoutes(matchComponent.service)
         userRoutes(userComponent.service)
         postRoutes(postComponent.service, likeComponent.service)
         likeRoutes(likeComponent.service)

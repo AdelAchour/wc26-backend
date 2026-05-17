@@ -6,6 +6,8 @@ import com.adel.features.matches.domain.MatchStatus
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.andWhere
 import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.update
+import java.time.OffsetDateTime
 
 class MatchRepositoryImpl : MatchRepository {
 
@@ -28,11 +30,7 @@ class MatchRepositoryImpl : MatchRepository {
     }
 
     override suspend fun findById(id: Long): Match? = dbQuery {
-        MatchTable
-            .selectAll()
-            .where { MatchTable.id eq id }
-            .map { it.toMatch() }
-            .singleOrNull()
+        findByIdInternal(id)
     }
 
     override suspend fun count(status: MatchStatus?, stage: String?): Long = dbQuery {
@@ -44,6 +42,36 @@ class MatchRepositoryImpl : MatchRepository {
             }
             .count()
     }
+
+    override suspend fun updateScoreAndStatus(
+        id: Long,
+        homeScore: Short?,
+        awayScore: Short?,
+        status: MatchStatus?,
+    ): Match? = dbQuery {
+        // If nothing to update, return early.
+        if (homeScore == null && awayScore == null && status == null) {
+            return@dbQuery findByIdInternal(id)
+        }
+
+        val updated = MatchTable.update({ MatchTable.id eq id }) { stmt ->
+            homeScore?.let { stmt[MatchTable.homeScore] = it }
+            awayScore?.let { stmt[MatchTable.awayScore] = it }
+            status?.let { stmt[MatchTable.status] = it.value }
+            stmt[MatchTable.updatedAt] = OffsetDateTime.now()
+        }
+
+        if (updated == 0) return@dbQuery null
+
+        findByIdInternal(id)
+    }
+
+    private fun findByIdInternal(id: Long): Match? =
+        MatchTable
+            .selectAll()
+            .where { MatchTable.id eq id }
+            .map { it.toMatch() }
+            .singleOrNull()
 
     private fun ResultRow.toMatch(): Match = Match(
         id = this[MatchTable.id],

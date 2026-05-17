@@ -89,6 +89,36 @@ class PostRepositoryImpl : PostRepository {
         CursorPage(items, nextCursor)
     }
 
+    override suspend fun findByUserWithAuthor(
+        userId: Long,
+        cursor: Cursor?,
+        limit: Int,
+    ): CursorPage<PostWithAuthor> = dbQuery {
+        val rows = (PostTable innerJoin UserTable)
+            .selectAll()
+            .where { PostTable.userId eq userId }
+            .apply {
+                cursor?.let { c ->
+                    andWhere {
+                        (PostTable.createdAt less c.createdAt) or
+                                ((PostTable.createdAt eq c.createdAt) and (PostTable.id less c.id))
+                    }
+                }
+            }
+            .orderBy(PostTable.createdAt to SortOrder.DESC, PostTable.id to SortOrder.DESC)
+            .limit(limit + 1)
+            .map { it.toPostWithAuthor() }
+
+        val hasMore = rows.size > limit
+        val items = if (hasMore) rows.take(limit) else rows
+        val nextCursor = if (hasMore) {
+            val last = items.last().post
+            Cursor(last.createdAt, last.id).encode()
+        } else null
+
+        CursorPage(items, nextCursor)
+    }
+
     override suspend fun create(userId: Long, matchId: Long, content: String): Post = dbQuery {
         val id = PostTable.insert {
             it[PostTable.userId] = userId

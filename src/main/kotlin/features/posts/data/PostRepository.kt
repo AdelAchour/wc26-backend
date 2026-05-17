@@ -19,6 +19,12 @@ interface PostRepository {
         limit: Int,
     ): CursorPage<PostWithAuthor>
 
+    suspend fun findByUserWithAuthor(
+        userId: Long,
+        cursor: Cursor?,
+        limit: Int,
+    ): CursorPage<PostWithAuthor>
+
     suspend fun create(userId: Long, matchId: Long, content: String): Post
     suspend fun findById(id: Long): Post?
     suspend fun delete(id: Long): Boolean
