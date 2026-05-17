@@ -122,6 +122,7 @@ class PostRepositoryImpl : PostRepository {
         matchId = this[PostTable.matchId],
         content = this[PostTable.content],
         likeCount = this[PostTable.likeCount],
+        commentCount = this[PostTable.commentCount],
         createdAt = this[PostTable.createdAt],
         updatedAt = this[PostTable.updatedAt],
     )
@@ -133,6 +134,7 @@ class PostRepositoryImpl : PostRepository {
             matchId = this[PostTable.matchId],
             content = this[PostTable.content],
             likeCount = this[PostTable.likeCount],
+            commentCount = this[PostTable.commentCount],
             createdAt = this[PostTable.createdAt],
             updatedAt = this[PostTable.updatedAt],
         ),
@@ -163,6 +165,24 @@ class PostRepositoryImpl : PostRepository {
         val updated = PostTable.update({ PostTable.id eq postId }) {
             with(SqlExpressionBuilder) {
                 it.update(PostTable.likeCount, PostTable.likeCount - 1)
+            }
+        }
+        updated > 0
+    }
+
+    override suspend fun incrementCommentCount(postId: Long): Boolean = dbQuery {
+        val updated = PostTable.update({ PostTable.id eq postId }) {
+            with(SqlExpressionBuilder) {
+                it.update(PostTable.commentCount, PostTable.commentCount + 1)
+            }
+        }
+        updated > 0
+    }
+
+    override suspend fun decrementCommentCount(postId: Long): Boolean = dbQuery {
+        val updated = PostTable.update({ PostTable.id eq postId }) {
+            with(SqlExpressionBuilder) {
+                it.update(PostTable.commentCount, PostTable.commentCount - 1)
             }
         }
         updated > 0

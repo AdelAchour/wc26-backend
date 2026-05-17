@@ -9,6 +9,7 @@ data class Post(
     val matchId: Long,
     val content: String,
     val likeCount: Int,
+    val commentCount: Int,
     val createdAt: OffsetDateTime,
     val updatedAt: OffsetDateTime,
 )

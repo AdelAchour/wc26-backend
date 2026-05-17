@@ -25,4 +25,7 @@ interface PostRepository {
 
     suspend fun incrementLikeCount(postId: Long): Boolean
     suspend fun decrementLikeCount(postId: Long): Boolean
+
+    suspend fun incrementCommentCount(postId: Long): Boolean
+    suspend fun decrementCommentCount(postId: Long): Boolean
 }

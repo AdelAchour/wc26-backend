@@ -151,6 +151,7 @@ class LikeRepositoryImpl : LikeRepository {
             matchId = this[PostTable.matchId],
             content = this[PostTable.content],
             likeCount = this[PostTable.likeCount],
+            commentCount = this[PostTable.commentCount],
             createdAt = this[PostTable.createdAt],
             updatedAt = this[PostTable.updatedAt],
         ),

@@ -10,6 +10,7 @@ data class PostDto(
     val author: PostAuthorDto,
     val content: String,
     val likeCount: Int,
+    val commentCount: Int,
     val likedByCurrentUser: Boolean,
     val createdAt: String,
 )
@@ -45,6 +46,7 @@ fun PostWithAuthor.toDto(likedByCurrentUser: Boolean = false): PostDto = PostDto
     ),
     content = post.content,
     likeCount = post.likeCount,
+    commentCount = post.commentCount,
     likedByCurrentUser = likedByCurrentUser,
     createdAt = post.createdAt.toString(),
 )
