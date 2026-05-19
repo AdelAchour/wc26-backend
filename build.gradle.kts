@@ -1,8 +1,8 @@
-
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(ktorLibs.plugins.ktor)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.shadow)
 }
 
 group = "com.adel"
@@ -11,6 +11,11 @@ version = "1.0.0-SNAPSHOT"
 application {
     mainClass = "io.ktor.server.netty.EngineMain"
     applicationDefaultJvmArgs = listOf("-Duser.timezone=UTC")
+}
+
+tasks.shadowJar {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    mergeServiceFiles()
 }
 
 kotlin {

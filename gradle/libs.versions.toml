@@ -4,8 +4,9 @@ logback = "1.5.21"
 exposed = "0.56.0"
 postgresql = "42.7.4"
 hikari = "6.2.1"
-flyway = "11.1.0"
+flyway = "11.12.0"
 bcrypt = "0.10.2"
+shadow = "9.4.1"
 
 [libraries]
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
@@ -22,3 +23,4 @@ bcrypt = { module = "at.favre.lib:bcrypt", version.ref = "bcrypt" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }

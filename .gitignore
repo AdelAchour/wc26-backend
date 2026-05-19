@@ -6,3 +6,8 @@ build/
 local.properties
 *.log
 .env
+.env.local
+.env.*.local
+# Loose JAR files in the repo root (build artifacts shouldn't live there)
+/*.jar
+/*.war

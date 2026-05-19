@@ -1,0 +1,63 @@
+# Production Compose stack for wc26-backend.
+#
+# Deployed location: /home/ubuntu/wc26/docker-compose.prod.yml on the VM.
+# Run with: docker compose -f docker-compose.prod.yml up -d
+# Secrets are read from a .env file in the same directory.
+# See .env.example for the required variables.
+
+services:
+
+  # ────────────────────────────────────────────────
+  # Postgres — application database
+  # ────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: wc26-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    volumes:
+      - wc26_postgres_data:/var/lib/postgresql/data
+    # No ports section: Postgres is only reachable by the app on the
+    # internal network, never from the host or the internet.
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - wc26_net
+
+  # ────────────────────────────────────────────────
+  # Ktor backend application
+  # ────────────────────────────────────────────────
+  app:
+    image: ghcr.io/adelachour/wc26-backend:latest
+    container_name: wc26-app
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/${DATABASE_NAME}
+      DATABASE_USER: ${DATABASE_USER}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ISSUER: ${JWT_ISSUER}
+      JWT_AUDIENCE: ${JWT_AUDIENCE}
+    ports:
+      # 127.0.0.1: prefix is critical. Without it, Docker binds to
+      # 0.0.0.0:8080 (public). With it, only processes on the VM
+      # (specifically, nginx) can reach the app.
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - wc26_net
+
+volumes:
+  wc26_postgres_data:
+
+networks:
+  wc26_net:
+    driver: bridge
