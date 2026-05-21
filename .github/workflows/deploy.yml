@@ -39,8 +39,8 @@ jobs:
       - name: Compile and build (gate before image build)
         run: |
           chmod +x ./gradlew
-          ./gradlew --no-daem
-          
+          ./gradlew --no-daemon shadowJar
+
       - name: Verify the JAR exists
         run: ls -lh build/libs/*-all.jar
 
