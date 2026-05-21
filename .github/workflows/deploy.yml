@@ -39,7 +39,10 @@ jobs:
       - name: Compile and build (gate before image build)
         run: |
           chmod +x ./gradlew
-          ./gradlew --no-daemon shadowJar
+          ./gradlew --no-daem
+          
+      - name: Verify the JAR exists
+        run: ls -lh build/libs/*-all.jar
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3

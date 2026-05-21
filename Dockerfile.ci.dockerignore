@@ -1,0 +1,16 @@
+.git
+.gradle
+.idea
+*.iml
+.DS_Store
+*.log
+local.properties
+src
+gradle
+gradlew
+gradlew.bat
+settings.gradle.kts
+build.gradle.kts
+deployment
+README.md
+docker-compose.yml
