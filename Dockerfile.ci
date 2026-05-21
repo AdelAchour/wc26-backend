@@ -1,0 +1,21 @@
+# CI/packaging Dockerfile.
+# Expects the fat JAR to be already built (by the workflow, natively).
+# This file does NOT compile — it only packages a pre-built JAR into
+# an ARM runtime image. That keeps the emulated ARM build near-instant.
+
+FROM eclipse-temurin:21-jre
+
+WORKDIR /app
+
+# The workflow builds the JAR and places it at build/libs/*-all.jar
+COPY build/libs/*-all.jar app.jar
+
+ENV TZ=UTC
+ENV JAVA_TOOL_OPTIONS="-Duser.timezone=UTC"
+
+EXPOSE 8080
+
+RUN useradd -r -u 1001 -g root appuser
+USER 1001
+
+CMD ["java", "-jar", "app.jar"]
