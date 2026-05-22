@@ -1,5 +1,7 @@
 package com.adel.plugins
 
+import com.adel.common.data.BuildInfo
+import com.adel.common.data.HealthResponse
 import com.adel.config.loadJwtConfig
 import com.adel.features.auth.api.authRoutes
 import com.adel.features.auth.di.AuthComponent
@@ -17,6 +19,8 @@ import com.adel.features.users.di.UserComponent
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 
 fun Application.configureRouting() {
     val jwtConfig = loadJwtConfig()
@@ -33,7 +37,14 @@ fun Application.configureRouting() {
 
     routing {
         get("/") {
-            call.respondText("WC26 Backend is alive ⚽ — 🇨🇦🇲🇽🇺🇸")
+            call.respond(
+                HealthResponse(
+                    service = "wc26-backend",
+                    status = "ok",
+                    version = BuildInfo.version,
+                    timestamp = OffsetDateTime.now(ZoneOffset.UTC).toString(),
+                )
+            )
         }
 
         matchRoutes(matchComponent.service)

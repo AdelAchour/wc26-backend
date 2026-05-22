@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.adel"
-version = "1.0.0-SNAPSHOT"
+version = "1.0.0"
 
 application {
     mainClass = "io.ktor.server.netty.EngineMain"
@@ -16,6 +16,34 @@ application {
 tasks.shadowJar {
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
     mergeServiceFiles()
+}
+
+// Generates a build-info.properties file containing the project version,
+// so the running app can report its version without hardcoding it.
+val generateBuildInfo by tasks.registering {
+    val versionString = project.version.toString()
+    val outputDir = layout.buildDirectory.dir("generated/build-info")
+    inputs.property("version", versionString)
+    outputs.dir(outputDir)
+    doLast {
+        val file = outputDir.get().file("build-info.properties").asFile
+        file.parentFile.mkdirs()
+        file.writeText("version=$versionString\n")
+    }
+}
+
+// Include the generated file in the app's resources, and make sure
+// the generation runs before resources are gathered.
+sourceSets {
+    main {
+        resources {
+            srcDir(layout.buildDirectory.dir("generated/build-info"))
+        }
+    }
+}
+
+tasks.named("processResources") {
+    dependsOn(generateBuildInfo)
 }
 
 kotlin {
