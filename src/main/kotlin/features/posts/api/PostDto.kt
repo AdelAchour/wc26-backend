@@ -1,5 +1,6 @@
 package com.adel.features.posts.api
 
+import com.adel.features.matches.api.MatchDto
 import com.adel.features.posts.domain.PostWithAuthor
 import kotlinx.serialization.Serializable
 
@@ -7,6 +8,7 @@ import kotlinx.serialization.Serializable
 data class PostDto(
     val id: Long,
     val matchId: Long,
+    val match: MatchDto? = null,
     val author: PostAuthorDto,
     val content: String,
     val likeCount: Int,
@@ -32,12 +34,15 @@ data class CreatePostRequest(
  * Convert a PostWithAuthor to its wire-format DTO.
  *
  * @param likedByCurrentUser whether the authenticated user has liked this post.
- *        Always false for unauthenticated requests, or when the like info hasn't
- *        been resolved yet. Wired up properly in Stage 3 when likes are added.
+ * @param match the nested match object if this post is being served in a mixed feed.
  */
-fun PostWithAuthor.toDto(likedByCurrentUser: Boolean = false): PostDto = PostDto(
+fun PostWithAuthor.toDto(
+    likedByCurrentUser: Boolean = false,
+    match: MatchDto? = null,
+): PostDto = PostDto(
     id = post.id,
     matchId = post.matchId,
+    match = match,
     author = PostAuthorDto(
         id = author.id,
         username = author.username,

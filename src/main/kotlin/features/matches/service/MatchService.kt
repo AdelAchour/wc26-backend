@@ -21,6 +21,9 @@ class MatchService(
 
     suspend fun getMatch(id: Long): Match? = repository.findById(id)
 
+    suspend fun getMatchesByIds(ids: Collection<Long>): Map<Long, Match> =
+        repository.findByIds(ids)
+
     suspend fun updateMatchAdmin(
         id: Long,
         homeScore: Short?,

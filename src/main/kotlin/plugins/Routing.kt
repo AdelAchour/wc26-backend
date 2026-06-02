@@ -50,8 +50,8 @@ fun Application.configureRouting() {
         matchRoutes(matchComponent.service)
         adminMatchRoutes(matchComponent.service)
         userRoutes(userComponent.service)
-        postRoutes(postComponent.service, likeComponent.service)
-        likeRoutes(likeComponent.service)
+        postRoutes(postComponent.service, likeComponent.service, matchComponent.service)
+        likeRoutes(likeComponent.service, matchComponent.service)
         commentRoutes(commentComponent.service)
         authRoutes(authComponent.service, userComponent.service)
     }

@@ -13,6 +13,8 @@ interface MatchRepository {
 
     suspend fun findById(id: Long): Match?
 
+    suspend fun findByIds(ids: Collection<Long>): Map<Long, Match>
+
     suspend fun count(status: MatchStatus? = null, stage: String? = null): Long
 
     suspend fun updateScoreAndStatus(

@@ -9,6 +9,8 @@ import com.adel.features.posts.domain.PostWithAuthor
 import com.adel.features.posts.service.CreatePostResult
 import com.adel.features.posts.service.DeletePostResult
 import com.adel.features.posts.service.PostService
+import com.adel.features.matches.service.MatchService
+import com.adel.features.matches.api.toDto
 import com.adel.plugins.JWT_AUTH_NAME
 import io.ktor.http.*
 import io.ktor.server.auth.*
@@ -19,6 +21,7 @@ import io.ktor.server.routing.*
 fun Route.postRoutes(
     service: PostService,
     likeService: LikeService,
+    matchService: MatchService,
 ) {
 
     // -------- Public read endpoints with OPTIONAL auth --------
@@ -34,6 +37,7 @@ fun Route.postRoutes(
                 val viewerId = call.userIdOrNull()
 
                 val result = service.listPostsForMatch(matchId, cursor, limit)
+                // Match specific feed: keep match null to save bandwidth and queries
                 call.respond(buildPageDto(result.items, result.nextCursor, viewerId, likeService))
             }
         }
@@ -45,7 +49,8 @@ fun Route.postRoutes(
                 val viewerId = call.userIdOrNull()
 
                 val result = service.listAllPosts(cursor, limit)
-                call.respond(buildPageDto(result.items, result.nextCursor, viewerId, likeService))
+                // Mixed context: enrich posts with their matches
+                call.respond(buildPageDto(result.items, result.nextCursor, viewerId, likeService, matchService))
             }
         }
 
@@ -59,7 +64,8 @@ fun Route.postRoutes(
                 val viewerId = call.userIdOrNull()
 
                 val result = service.listPostsByUser(userId, cursor, limit)
-                call.respond(buildPageDto(result.items, result.nextCursor, viewerId, likeService))
+                // Mixed context: enrich posts with their matches
+                call.respond(buildPageDto(result.items, result.nextCursor, viewerId, likeService, matchService))
             }
         }
 
@@ -75,7 +81,10 @@ fun Route.postRoutes(
                 val likedByCurrentUser = viewerId != null &&
                         likeService.whichArePostsLikedBy(viewerId, listOf(post.post.id)).isNotEmpty()
 
-                call.respond(post.toDto(likedByCurrentUser))
+                // Fetch single match details via matchService
+                val matchDto = matchService.getMatch(post.post.matchId)?.toDto()
+
+                call.respond(post.toDto(likedByCurrentUser, matchDto))
             }
         }
     }
@@ -94,6 +103,7 @@ fun Route.postRoutes(
                 is CreatePostResult.Success -> {
                     val withAuthor = service.getPost(result.post.id)
                     if (withAuthor != null) {
+                        // Match specific: keep match null
                         call.respond(HttpStatusCode.Created, withAuthor.toDto(likedByCurrentUser = false))
                     } else {
                         call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Post created but could not be fetched"))
@@ -124,19 +134,31 @@ fun Route.postRoutes(
 }
 
 /**
- * Builds a paginated DTO response, enriching each post with likedByCurrentUser
- * based on the viewer's actual likes. Uses a single batched query to avoid N+1.
+ * Builds a paginated DTO response, enriching each post with likedByCurrentUser.
+ * If matchService is passed, it batch fetches matches in a single query to avoid N+1.
  */
 private suspend fun buildPageDto(
     items: List<PostWithAuthor>,
     nextCursor: String?,
     viewerId: Long?,
     likeService: LikeService,
+    matchService: MatchService? = null,
 ): CursorPageDto<PostDto> {
     val likedSet: Set<Long> = if (viewerId != null) {
         likeService.whichArePostsLikedBy(viewerId, items.map { it.post.id })
     } else emptySet()
 
-    val dtoItems = items.map { it.toDto(likedByCurrentUser = it.post.id in likedSet) }
+    // Batch-load match details for scrolling feeds to prevent N+1 queries
+    val matchesMap = if (matchService != null && items.isNotEmpty()) {
+        val matchIds = items.map { it.post.matchId }.distinct()
+        matchService.getMatchesByIds(matchIds).mapValues { it.value.toDto() }
+    } else emptyMap()
+
+    val dtoItems = items.map {
+        it.toDto(
+            likedByCurrentUser = it.post.id in likedSet,
+            match = matchesMap[it.post.matchId]
+        )
+    }
     return CursorPageDto(items = dtoItems, nextCursor = nextCursor)
 }

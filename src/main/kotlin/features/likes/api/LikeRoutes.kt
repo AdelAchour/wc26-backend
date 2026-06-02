@@ -9,13 +9,18 @@ import com.adel.features.likes.service.LikeResult
 import com.adel.features.likes.service.LikeService
 import com.adel.features.posts.api.toDto
 import com.adel.features.users.api.toPublicDto
+import com.adel.features.matches.service.MatchService
+import com.adel.features.matches.api.toDto
 import com.adel.plugins.JWT_AUTH_NAME
 import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Route.likeRoutes(service: LikeService) {
+fun Route.likeRoutes(
+    service: LikeService,
+    matchService: MatchService,
+) {
 
     // -------- Public read endpoints with optional auth --------
     authenticate(JWT_AUTH_NAME, optional = true) {
@@ -53,8 +58,17 @@ fun Route.likeRoutes(service: LikeService) {
                     service.whichArePostsLikedBy(viewerId, result.items.map { it.post.id })
                 } else emptySet()
 
+                // Batch fetch match details via matchService to avoid N+1 queries
+                val matchesMap = if (result.items.isNotEmpty()) {
+                    val matchIds = result.items.map { it.post.matchId }.distinct()
+                    matchService.getMatchesByIds(matchIds).mapValues { it.value.toDto() }
+                } else emptyMap()
+
                 val responseItems = result.items.map { postWithAuthor ->
-                    postWithAuthor.toDto(likedByCurrentUser = postWithAuthor.post.id in likedByViewer)
+                    postWithAuthor.toDto(
+                        likedByCurrentUser = postWithAuthor.post.id in likedByViewer,
+                        match = matchesMap[postWithAuthor.post.matchId]
+                    )
                 }
 
                 call.respond(

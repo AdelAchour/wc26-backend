@@ -33,6 +33,15 @@ class MatchRepositoryImpl : MatchRepository {
         findByIdInternal(id)
     }
 
+    override suspend fun findByIds(ids: Collection<Long>): Map<Long, Match> = dbQuery {
+        if (ids.isEmpty()) return@dbQuery emptyMap()
+        MatchTable
+            .selectAll()
+            .where { MatchTable.id inList ids }
+            .map { it.toMatch() }
+            .associateBy { it.id }
+    }
+
     override suspend fun count(status: MatchStatus?, stage: String?): Long = dbQuery {
         MatchTable
             .selectAll()
