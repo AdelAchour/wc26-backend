@@ -2,7 +2,10 @@ package com.adel.features.comments.api
 
 import com.adel.common.pagination.toDto
 import com.adel.common.security.requireUserId
+import com.adel.common.security.userIdOrNull
 import com.adel.features.comments.service.CommentService
+import com.adel.features.comments.service.CommentLikeService
+import com.adel.features.comments.service.CommentLikeResult
 import com.adel.features.comments.service.CreateCommentResult
 import com.adel.features.comments.service.DeleteCommentResult
 import com.adel.plugins.JWT_AUTH_NAME
@@ -12,30 +15,42 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Route.commentRoutes(service: CommentService) {
+fun Route.commentRoutes(
+    service: CommentService,
+    likeService: CommentLikeService
+) {
 
-    // -------- Public read endpoint --------
-    // No auth gating since comments are public content.
-    route("/posts/{postId}/comments") {
-        get {
-            val postId = call.parameters["postId"]?.toLongOrNull()
-                ?: return@get call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid post id"))
+    // -------- Public read endpoints with OPTIONAL auth --------
+    authenticate(JWT_AUTH_NAME, optional = true) {
+        route("/posts/{postId}/comments") {
+            get {
+                val postId = call.parameters["postId"]?.toLongOrNull()
+                    ?: return@get call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid post id"))
 
-            val limit = call.request.queryParameters["limit"]?.toIntOrNull()
-                ?.coerceIn(1, 100)
-                ?: 20
-            val offset = call.request.queryParameters["offset"]?.toLongOrNull()
-                ?.coerceAtLeast(0)
-                ?: 0L
+                val limit = call.request.queryParameters["limit"]?.toIntOrNull()
+                    ?.coerceIn(1, 100)
+                    ?: 20
+                val offset = call.request.queryParameters["offset"]?.toLongOrNull()
+                    ?.coerceAtLeast(0)
+                    ?: 0L
 
-            val result = service.listForPost(postId, limit, offset)
-            call.respond(result.toDto { it.toDto() })
+                val viewerId = call.userIdOrNull()
+                val result = service.listForPost(postId, limit, offset)
+                // Batch check which comments the current user has liked
+                val likedByViewer = if (viewerId != null && result.items.isNotEmpty()) {
+                    likeService.whichAreCommentsLikedBy(userId = viewerId, commentIds = result.items.map { it.comment.id })
+                } else emptySet()
+
+                call.respond(
+                    result.toDto { it.toDto(likedByCurrentUser = it.comment.id in likedByViewer) }
+                )
+            }
         }
     }
 
     // -------- Write endpoints (required auth) --------
     authenticate(JWT_AUTH_NAME) {
-
+        // Create a comment
         post("/posts/{postId}/comments") {
             val postId = call.parameters["postId"]?.toLongOrNull()
                 ?: return@post call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid post id"))
@@ -61,6 +76,7 @@ fun Route.commentRoutes(service: CommentService) {
             }
         }
 
+        // Delete a comment
         delete("/comments/{id}") {
             val id = call.parameters["id"]?.toLongOrNull()
                 ?: return@delete call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid comment id"))
@@ -71,6 +87,28 @@ fun Route.commentRoutes(service: CommentService) {
                 DeleteCommentResult.Success -> call.respond(HttpStatusCode.NoContent)
                 DeleteCommentResult.NotFound -> call.respond(HttpStatusCode.NotFound, mapOf("error" to "Comment not found"))
                 DeleteCommentResult.Forbidden -> call.respond(HttpStatusCode.Forbidden, mapOf("error" to "You can only delete your own comments"))
+            }
+        }
+
+        // Like a comment
+        post("/comments/{commentId}/like") {
+            val commentId = call.parameters["commentId"]?.toLongOrNull()
+                ?: return@post call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid comment id"))
+            val userId = call.requireUserId()
+            when (likeService.likeComment(userId, commentId)) {
+                CommentLikeResult.Success -> call.respond(HttpStatusCode.NoContent)
+                CommentLikeResult.CommentNotFound -> call.respond(HttpStatusCode.NotFound, mapOf("error" to "Comment not found"))
+            }
+        }
+
+        // Unlike a comment
+        delete("/comments/{commentId}/like") {
+            val commentId = call.parameters["commentId"]?.toLongOrNull()
+                ?: return@delete call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid comment id"))
+            val userId = call.requireUserId()
+            when (likeService.unlikeComment(userId, commentId)) {
+                CommentLikeResult.Success -> call.respond(HttpStatusCode.NoContent)
+                CommentLikeResult.CommentNotFound -> call.respond(HttpStatusCode.NotFound, mapOf("error" to "Comment not found"))
             }
         }
     }

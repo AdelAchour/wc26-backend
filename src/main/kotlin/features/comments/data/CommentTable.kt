@@ -10,6 +10,7 @@ object CommentTable : Table("comments") {
     val userId = long("user_id").references(UserTable.id)
     val postId = long("post_id").references(PostTable.id)
     val content = text("content")
+    val likeCount = integer("like_count").default(0)
     val createdAt = timestampWithTimeZone("created_at")
 
     override val primaryKey = PrimaryKey(id)

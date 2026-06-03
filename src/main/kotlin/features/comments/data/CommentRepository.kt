@@ -14,4 +14,7 @@ interface CommentRepository {
     ): PaginatedResult<CommentWithAuthor>
     suspend fun create(userId: Long, postId: Long, content: String): Comment
     suspend fun delete(id: Long): Boolean
+
+    suspend fun incrementLikeCount(commentId: Long): Boolean
+    suspend fun decrementLikeCount(commentId: Long): Boolean
 }

@@ -52,7 +52,7 @@ fun Application.configureRouting() {
         userRoutes(userComponent.service)
         postRoutes(postComponent.service, likeComponent.service, matchComponent.service)
         likeRoutes(likeComponent.service, matchComponent.service)
-        commentRoutes(commentComponent.service)
+        commentRoutes(commentComponent.service, commentComponent.likeService)
         authRoutes(authComponent.service, userComponent.service)
     }
 }

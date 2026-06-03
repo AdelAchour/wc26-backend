@@ -13,6 +13,8 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.update
+import org.jetbrains.exposed.sql.SqlExpressionBuilder
 
 class CommentRepositoryImpl : CommentRepository {
 
@@ -72,11 +74,29 @@ class CommentRepositoryImpl : CommentRepository {
         rowsDeleted > 0
     }
 
+    override suspend fun incrementLikeCount(commentId: Long): Boolean = dbQuery {
+        val updated = CommentTable.update({ CommentTable.id eq commentId }) {
+            with(SqlExpressionBuilder) {
+                it.update(CommentTable.likeCount, CommentTable.likeCount + 1)
+            }
+        }
+        updated > 0
+    }
+    override suspend fun decrementLikeCount(commentId: Long): Boolean = dbQuery {
+        val updated = CommentTable.update({ CommentTable.id eq commentId }) {
+            with(SqlExpressionBuilder) {
+                it.update(CommentTable.likeCount, CommentTable.likeCount - 1)
+            }
+        }
+        updated > 0
+    }
+
     private fun ResultRow.toComment(): Comment = Comment(
         id = this[CommentTable.id],
         userId = this[CommentTable.userId],
         postId = this[CommentTable.postId],
         content = this[CommentTable.content],
+        likeCount = this[CommentTable.likeCount],
         createdAt = this[CommentTable.createdAt],
     )
 

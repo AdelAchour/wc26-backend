@@ -8,8 +8,10 @@ import kotlinx.serialization.Serializable
 data class CommentDto(
     val id: Long,
     val postId: Long,
-    val author: PostAuthorDto,  // reuse the existing public-author DTO
+    val author: PostAuthorDto,
     val content: String,
+    val likeCount: Int,
+    val likedByCurrentUser: Boolean,
     val createdAt: String,
 )
 
@@ -18,7 +20,9 @@ data class CreateCommentRequest(
     val content: String,
 )
 
-fun CommentWithAuthor.toDto(): CommentDto = CommentDto(
+fun CommentWithAuthor.toDto(
+    likedByCurrentUser: Boolean = false,
+): CommentDto = CommentDto(
     id = comment.id,
     postId = comment.postId,
     author = PostAuthorDto(
@@ -28,5 +32,7 @@ fun CommentWithAuthor.toDto(): CommentDto = CommentDto(
         avatarUrl = author.avatarUrl,
     ),
     content = comment.content,
+    likeCount = comment.likeCount,
+    likedByCurrentUser = likedByCurrentUser,
     createdAt = comment.createdAt.toString(),
 )
