@@ -13,4 +13,5 @@ interface UserRepository {
     ): User
     suspend fun emailExists(email: String): Boolean
     suspend fun usernameExists(username: String): Boolean
+    suspend fun updateAvatar(id: Long, avatarUrl: String?): User?
 }

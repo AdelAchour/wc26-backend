@@ -24,3 +24,8 @@ data class AuthResponse(
     val username: String,
     val displayName: String,
 )
+
+@Serializable
+data class UpdateAvatarRequest(
+    val avatarUrl: String
+)

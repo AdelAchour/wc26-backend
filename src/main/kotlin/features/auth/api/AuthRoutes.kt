@@ -85,6 +85,20 @@ fun Route.authRoutes(
 
                 call.respond(user.toDto())
             }
+
+            patch("me") {
+                val userId = call.requireUserId()
+                val request = call.receive<UpdateAvatarRequest>()
+
+                if (request.avatarUrl.isBlank()) {
+                    return@patch call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Avatar URL cannot be blank"))
+                }
+
+                val updatedUser = userService.updateAvatar(userId, request.avatarUrl)
+                    ?: return@patch call.respond(HttpStatusCode.NotFound, mapOf("error" to "User not found"))
+
+                call.respond(updatedUser.toDto())
+            }
         }
     }
 }
