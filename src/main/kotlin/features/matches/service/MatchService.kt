@@ -30,25 +30,46 @@ class MatchService(
         awayScore: Short?,
         status: MatchStatus?,
     ): UpdateMatchResult {
-        // Validate score consistency: if any score is provided, both should be
-        // (you can't have a half-known score in a real match).
-        val scoreCount = listOf(homeScore, awayScore).count { it != null }
-        if (scoreCount == 1) {
-            return UpdateMatchResult.InvalidScores
-        }
-
-        // Validate scores are non-negative (DB has no constraint on this)
-        if ((homeScore != null && homeScore < 0) || (awayScore != null && awayScore < 0)) {
-            return UpdateMatchResult.InvalidScores
-        }
-
-        // If nothing to update, return BadRequest (PATCH with empty body is wrong)
+        // Validation: if everything is null, nothing to update.
         if (homeScore == null && awayScore == null && status == null) {
             return UpdateMatchResult.NothingToUpdate
         }
 
-        val updated = repository.updateScoreAndStatus(id, homeScore, awayScore, status)
-            ?: return UpdateMatchResult.NotFound
+        // Fetch current match to check its database status
+        val currentMatch = repository.findById(id) ?: return UpdateMatchResult.NotFound
+        val targetStatus = status ?: currentMatch.status
+
+        // Standard validation: score rules apply unless target status is scheduled
+        if (targetStatus != MatchStatus.SCHEDULED) {
+            val scoreCount = listOf(homeScore, awayScore).count { it != null }
+            if (scoreCount == 1) {
+                return UpdateMatchResult.InvalidScores
+            }
+            if ((homeScore != null && homeScore < 0) || (awayScore != null && awayScore < 0)) {
+                return UpdateMatchResult.InvalidScores
+            }
+        }
+
+        // Apply state transition rule for moving from SCHEDULED to LIVE/FINISHED
+        val (finalHomeScore, finalAwayScore) = if (currentMatch.status == MatchStatus.SCHEDULED &&
+            (targetStatus == MatchStatus.LIVE || targetStatus == MatchStatus.FINISHED)
+        ) {
+            if (homeScore == null && awayScore == null) {
+                // Client did not explicitly send scores; auto-initialize to 0-0.
+                Pair(0.toShort(), 0.toShort())
+            } else {
+                Pair(homeScore, awayScore)
+            }
+        } else {
+            Pair(homeScore, awayScore)
+        }
+
+        val updated = repository.updateScoreAndStatus(
+            id = id,
+            homeScore = finalHomeScore,
+            awayScore = finalAwayScore,
+            status = status,
+        ) ?: return UpdateMatchResult.NotFound
 
         return UpdateMatchResult.Success(updated)
     }

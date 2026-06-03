@@ -64,14 +64,19 @@ class MatchRepositoryImpl : MatchRepository {
         }
 
         val updated = MatchTable.update({ MatchTable.id eq id }) { stmt ->
-            homeScore?.let { stmt[MatchTable.homeScore] = it }
-            awayScore?.let { stmt[MatchTable.awayScore] = it }
+            if (status == MatchStatus.SCHEDULED) {
+                // If setting to scheduled, force both scores to null in the database.
+                stmt[MatchTable.homeScore] = null
+                stmt[MatchTable.awayScore] = null
+            } else {
+                // Standard PATCH: only update scores if they are explicitly sent.
+                homeScore?.let { stmt[MatchTable.homeScore] = it }
+                awayScore?.let { stmt[MatchTable.awayScore] = it }
+            }
             status?.let { stmt[MatchTable.status] = it.value }
             stmt[MatchTable.updatedAt] = OffsetDateTime.now()
         }
-
         if (updated == 0) return@dbQuery null
-
         findByIdInternal(id)
     }
 
