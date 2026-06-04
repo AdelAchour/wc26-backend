@@ -77,6 +77,9 @@ class UserRepositoryImpl : UserRepository {
             if (params.hasBio) {
                 it[UserTable.bio] = params.bio
             }
+            if (params.hasRole && params.role != null) {
+                it[UserTable.role] = params.role.value
+            }
             it[UserTable.updatedAt] = OffsetDateTime.now()
         }
         if (updatedRows > 0) {
