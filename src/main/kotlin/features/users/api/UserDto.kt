@@ -14,6 +14,7 @@ data class UserDto(
     val username: String,
     val displayName: String,
     val avatarUrl: String?,
+    val bio: String?,
     val role: String,
     val createdAt: String,
 )
@@ -28,6 +29,7 @@ data class UserPublicDto(
     val username: String,
     val displayName: String,
     val avatarUrl: String?,
+    val bio: String?,
     val createdAt: String,
 )
 
@@ -37,6 +39,7 @@ fun User.toDto(): UserDto = UserDto(
     username = username,
     displayName = displayName,
     avatarUrl = avatarUrl,
+    bio = bio,
     role = role.value,
     createdAt = createdAt.toString(),
 )
@@ -46,5 +49,6 @@ fun User.toPublicDto(): UserPublicDto = UserPublicDto(
     username = username,
     displayName = displayName,
     avatarUrl = avatarUrl,
+    bio = bio,
     createdAt = createdAt.toString(),
 )

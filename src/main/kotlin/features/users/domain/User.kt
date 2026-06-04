@@ -9,6 +9,7 @@ data class User(
     val passwordHash: String,   // never leaves the data/service boundary
     val displayName: String,
     val avatarUrl: String?,
+    val bio: String?,
     val role: UserRole,
     val createdAt: OffsetDateTime,
     val updatedAt: OffsetDateTime,

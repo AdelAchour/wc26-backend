@@ -26,6 +26,9 @@ data class AuthResponse(
 )
 
 @Serializable
-data class UpdateAvatarRequest(
-    val avatarUrl: String
+data class UpdateProfileRequest(
+    val displayName: String? = null,
+    val avatarUrl: String? = null,
+    val bio: String? = null,
 )
+

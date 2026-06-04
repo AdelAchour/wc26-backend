@@ -175,6 +175,7 @@ class PostRepositoryImpl : PostRepository {
             passwordHash = this[UserTable.passwordHash],
             displayName = this[UserTable.displayName],
             avatarUrl = this[UserTable.avatarUrl],
+            bio = this[UserTable.bio],
             role = UserRole.fromString(this[UserTable.role]),
             createdAt = this[UserTable.createdAt],
             updatedAt = this[UserTable.updatedAt],

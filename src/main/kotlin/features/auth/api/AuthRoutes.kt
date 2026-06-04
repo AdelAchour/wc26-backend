@@ -5,6 +5,8 @@ import com.adel.features.auth.service.AuthService
 import com.adel.features.auth.service.LoginResult
 import com.adel.features.auth.service.RegisterResult
 import com.adel.features.users.api.toDto
+import com.adel.features.users.data.UpdateProfileParams
+import com.adel.features.users.service.UpdateProfileResult
 import com.adel.features.users.service.UserService
 import com.adel.plugins.JWT_AUTH_NAME
 import io.ktor.http.*
@@ -88,16 +90,41 @@ fun Route.authRoutes(
 
             patch("me") {
                 val userId = call.requireUserId()
-                val request = call.receive<UpdateAvatarRequest>()
+                val request = call.receive<UpdateProfileRequest>()
 
-                if (request.avatarUrl.isBlank()) {
-                    return@patch call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Avatar URL cannot be blank"))
+                val params = UpdateProfileParams(
+                    displayName = request.displayName,
+                    hasDisplayName = request.displayName != null,
+                    avatarUrl = request.avatarUrl,
+                    hasAvatarUrl = request.avatarUrl != null,
+                    // Map empty string "" to null to support clearing the bio
+                    bio = if (request.bio?.isEmpty() == true) null else request.bio,
+                    hasBio = request.bio != null
+                )
+
+                when (val result = userService.updateProfile(userId, params)) {
+                    is UpdateProfileResult.Success -> call.respond(result.user.toDto())
+                    UpdateProfileResult.UserNotFound -> call.respond(
+                        HttpStatusCode.NotFound,
+                        mapOf("error" to "User not found")
+                    )
+                    UpdateProfileResult.DisplayNameTooShort -> call.respond(
+                        HttpStatusCode.BadRequest,
+                        mapOf("error" to "Display name must be at least 2 characters")
+                    )
+                    UpdateProfileResult.DisplayNameTooLong -> call.respond(
+                        HttpStatusCode.BadRequest,
+                        mapOf("error" to "Display name must be at most 50 characters")
+                    )
+                    UpdateProfileResult.AvatarUrlBlank -> call.respond(
+                        HttpStatusCode.BadRequest,
+                        mapOf("error" to "Avatar URL cannot be blank")
+                    )
+                    UpdateProfileResult.BioTooLong -> call.respond(
+                        HttpStatusCode.BadRequest,
+                        mapOf("error" to "Bio must be at most 100 characters")
+                    )
                 }
-
-                val updatedUser = userService.updateAvatar(userId, request.avatarUrl)
-                    ?: return@patch call.respond(HttpStatusCode.NotFound, mapOf("error" to "User not found"))
-
-                call.respond(updatedUser.toDto())
             }
         }
     }

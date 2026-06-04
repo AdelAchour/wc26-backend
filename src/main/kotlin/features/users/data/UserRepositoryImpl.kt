@@ -66,12 +66,24 @@ class UserRepositoryImpl : UserRepository {
             .not()
     }
 
-    override suspend fun updateAvatar(id: Long, avatarUrl: String?): User? = dbQuery {
+    override suspend fun updateProfile(id: Long, params: UpdateProfileParams): User? = dbQuery {
         val updatedRows = UserTable.update({ UserTable.id eq id }) {
-            it[UserTable.avatarUrl] = avatarUrl
+            if (params.hasDisplayName && params.displayName != null) {
+                it[UserTable.displayName] = params.displayName
+            }
+            if (params.hasAvatarUrl) {
+                it[UserTable.avatarUrl] = params.avatarUrl
+            }
+            if (params.hasBio) {
+                it[UserTable.bio] = params.bio
+            }
             it[UserTable.updatedAt] = OffsetDateTime.now()
         }
-        if (updatedRows > 0) findByIdInternal(id) else null
+        if (updatedRows > 0) {
+            findByIdInternal(id)
+        } else {
+            null
+        }
     }
 
     private fun findByIdInternal(id: Long): User? =
@@ -88,6 +100,7 @@ class UserRepositoryImpl : UserRepository {
         passwordHash = this[UserTable.passwordHash],
         displayName = this[UserTable.displayName],
         avatarUrl = this[UserTable.avatarUrl],
+        bio = this[UserTable.bio],
         role = UserRole.fromString(this[UserTable.role]),
         createdAt = this[UserTable.createdAt],
         updatedAt = this[UserTable.updatedAt],
