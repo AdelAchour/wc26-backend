@@ -57,9 +57,11 @@ class MatchRepositoryImpl : MatchRepository {
         homeScore: Short?,
         awayScore: Short?,
         status: MatchStatus?,
+        homeTeam: String?,
+        awayTeam: String?,
     ): Match? = dbQuery {
         // If nothing to update, return early.
-        if (homeScore == null && awayScore == null && status == null) {
+        if (homeScore == null && awayScore == null && status == null && homeTeam == null && awayTeam == null) {
             return@dbQuery findByIdInternal(id)
         }
 
@@ -74,6 +76,8 @@ class MatchRepositoryImpl : MatchRepository {
                 awayScore?.let { stmt[MatchTable.awayScore] = it }
             }
             status?.let { stmt[MatchTable.status] = it.value }
+            homeTeam?.let { stmt[MatchTable.homeTeam] = it }
+            awayTeam?.let { stmt[MatchTable.awayTeam] = it }
             stmt[MatchTable.updatedAt] = OffsetDateTime.now()
         }
         if (updated == 0) return@dbQuery null

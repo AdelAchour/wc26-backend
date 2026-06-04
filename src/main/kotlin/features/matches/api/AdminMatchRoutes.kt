@@ -16,6 +16,8 @@ data class UpdateMatchRequest(
     val homeScore: Short? = null,
     val awayScore: Short? = null,
     val status: String? = null,
+    val homeTeam: String? = null,
+    val awayTeam: String? = null,
 )
 
 fun Route.adminMatchRoutes(service: MatchService) {
@@ -39,11 +41,21 @@ fun Route.adminMatchRoutes(service: MatchService) {
                 homeScore = request.homeScore,
                 awayScore = request.awayScore,
                 status = status,
+                homeTeam = request.homeTeam,
+                awayTeam = request.awayTeam,
             )) {
                 is UpdateMatchResult.Success -> call.respond(result.match.toDto())
                 UpdateMatchResult.NotFound -> call.respond(HttpStatusCode.NotFound, mapOf("error" to "Match not found"))
                 UpdateMatchResult.InvalidScores -> call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Both scores must be provided together and must be non-negative"))
                 UpdateMatchResult.NothingToUpdate -> call.respond(HttpStatusCode.BadRequest, mapOf("error" to "At least one field must be provided"))
+                UpdateMatchResult.CannotUpdateGroupTeams -> call.respond(
+                    HttpStatusCode.BadRequest,
+                    mapOf("error" to "Team names can only be changed for knockout stage matches")
+                )
+                UpdateMatchResult.InvalidTeam -> call.respond(
+                    HttpStatusCode.BadRequest,
+                    mapOf("error" to "Invalid team name. Must match one of the 48 participating countries.")
+                )
             }
         }
     }

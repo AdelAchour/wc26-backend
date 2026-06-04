@@ -22,5 +22,7 @@ interface MatchRepository {
         homeScore: Short?,
         awayScore: Short?,
         status: MatchStatus?,
+        homeTeam: String? = null,
+        awayTeam: String? = null,
     ): Match?
 }
