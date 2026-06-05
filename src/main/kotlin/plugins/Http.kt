@@ -10,8 +10,11 @@ fun Application.configureHttp() {
         allowMethod(HttpMethod.Put)
         allowMethod(HttpMethod.Delete)
         allowMethod(HttpMethod.Patch)
+
         allowHeader(HttpHeaders.Authorization)
+        allowHeader("X-App-Version")
         allowHeader("MyCustomHeader")
+
         anyHost() // @TODO: Don't do this in production if possible. Try to limit it.
     }
 }

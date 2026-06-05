@@ -1,8 +1,10 @@
 package com.adel
 
 import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.headers
 import io.ktor.server.testing.testApplication
 import kotlin.test.*
 
@@ -29,6 +31,39 @@ class ServerTest {
         assertTrue(body.contains("\"homeTeamCode\":\"mx\""))
         assertTrue(body.contains("\"awayTeam\":\"South Africa\""))
         assertTrue(body.contains("\"awayTeamCode\":\"za\""))
+    }
+
+    // system status
+    @Test
+    fun `test system status endpoint returns config`() = testApplication {
+        configure()
+        val response = client.get("/system-status")
+        assertEquals(HttpStatusCode.OK, response.status)
+        val body = response.bodyAsText()
+        assertTrue(body.contains("min_android_version"))
+        assertTrue(body.contains("maintenance_mode"))
+        assertTrue(body.contains("android_update_url"))
+    }
+
+    @Test
+    fun `test interceptor blocks outdated version`() = testApplication {
+        configure()
+        val response = client.get("/matches") {
+            header("X-App-Version", "0")
+        }
+        assertEquals(HttpStatusCode.UpgradeRequired, response.status) // HTTP 426
+        val body = response.bodyAsText()
+        assertTrue(body.contains("android_update_url"))
+        assertTrue(body.contains("min_android_version"))
+    }
+
+    @Test
+    fun `test interceptor allows current version`() = testApplication {
+        configure()
+        val response = client.get("/matches") {
+            header("X-App-Version", "2") // 2 >= 1
+        }
+        assertEquals(HttpStatusCode.OK, response.status)
     }
 
 }

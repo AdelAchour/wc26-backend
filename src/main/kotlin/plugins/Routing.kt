@@ -16,6 +16,9 @@ import com.adel.features.posts.api.postRoutes
 import com.adel.features.posts.di.PostComponent
 import com.adel.features.users.api.userRoutes
 import com.adel.features.users.di.UserComponent
+import com.adel.features.system.api.systemStatusRoutes
+import com.adel.features.system.api.SystemStatusInterceptor
+import com.adel.features.system.di.SystemComponent
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -31,6 +34,12 @@ fun Application.configureRouting() {
     val likeComponent = LikeComponent(postComponent.repository)
     val commentComponent = CommentComponent(postComponent.repository)
     val authComponent = AuthComponent(userComponent.repository, jwtConfig)
+    val systemComponent = SystemComponent()
+
+    // Install system config request interceptor middleware
+    install(SystemStatusInterceptor) {
+        service = systemComponent.service
+    }
 
     // Install auth using components wired above
     configureAuthentication(jwtConfig, authComponent.jwtService)
@@ -54,5 +63,6 @@ fun Application.configureRouting() {
         likeRoutes(likeComponent.service, matchComponent.service)
         commentRoutes(commentComponent.service, commentComponent.likeService)
         authRoutes(authComponent.service, userComponent.service)
+        systemStatusRoutes(systemComponent.service)
     }
 }
