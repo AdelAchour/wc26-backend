@@ -3,6 +3,8 @@ package com.adel.features.likes.service
 import com.adel.common.pagination.Cursor
 import com.adel.common.pagination.CursorPage
 import com.adel.features.likes.data.LikeRepository
+import com.adel.features.notifications.domain.NotificationType
+import com.adel.features.notifications.service.NotificationService
 import com.adel.features.posts.data.PostRepository
 import com.adel.features.posts.domain.PostWithAuthor
 import com.adel.features.users.domain.User
@@ -10,20 +12,23 @@ import com.adel.features.users.domain.User
 class LikeService(
     private val likeRepository: LikeRepository,
     private val postRepository: PostRepository,
+    private val notificationService: NotificationService
 ) {
 
     suspend fun likePost(userId: Long, postId: Long): LikeResult {
-        // Verify the post exists before counting it
-        if (postRepository.findById(postId) == null) {
-            return LikeResult.PostNotFound
-        }
-
-        // Idempotent: returns true if newly inserted, false if already liked
+        val post = postRepository.findById(postId) ?: return LikeResult.PostNotFound
         val newlyCreated = likeRepository.create(userId, postId)
         if (newlyCreated) {
             postRepository.incrementLikeCount(postId)
-        }
 
+            // Trigger LIKE_POST notification
+            notificationService.createNotification(
+                senderId = userId,
+                receiverId = post.userId,
+                type = NotificationType.LIKE_POST,
+                postId = postId
+            )
+        }
         return LikeResult.Success
     }
 
@@ -35,6 +40,9 @@ class LikeService(
         val deleted = likeRepository.delete(userId, postId)
         if (deleted) {
             postRepository.decrementLikeCount(postId)
+
+            // Clean up the notification if unliked
+            notificationService.deleteLikeNotification(senderId = userId, postId = postId)
         }
 
         return LikeResult.Success

@@ -12,6 +12,8 @@ import com.adel.features.likes.di.LikeComponent
 import com.adel.features.matches.api.adminMatchRoutes
 import com.adel.features.matches.api.matchRoutes
 import com.adel.features.matches.di.MatchComponent
+import com.adel.features.notifications.api.notificationRoutes
+import com.adel.features.notifications.di.NotificationComponent
 import com.adel.features.posts.api.postRoutes
 import com.adel.features.posts.di.PostComponent
 import com.adel.features.users.api.userRoutes
@@ -29,10 +31,11 @@ fun Application.configureRouting() {
     val jwtConfig = loadJwtConfig()
 
     val matchComponent = MatchComponent()
+    val notificationComponent = NotificationComponent()
     val userComponent = UserComponent()
     val postComponent = PostComponent(matchComponent.repository)
-    val likeComponent = LikeComponent(postComponent.repository)
-    val commentComponent = CommentComponent(postComponent.repository)
+    val likeComponent = LikeComponent(postComponent.repository, notificationComponent.service)
+    val commentComponent = CommentComponent(postComponent.repository, notificationComponent.service)
     val authComponent = AuthComponent(userComponent.repository, jwtConfig)
     val systemComponent = SystemComponent()
 
@@ -64,5 +67,6 @@ fun Application.configureRouting() {
         commentRoutes(commentComponent.service, commentComponent.likeService)
         authRoutes(authComponent.service, userComponent.service)
         systemStatusRoutes(systemComponent.service)
+        notificationRoutes(notificationComponent.service)
     }
 }

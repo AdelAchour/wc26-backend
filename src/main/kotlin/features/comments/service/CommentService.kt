@@ -4,11 +4,14 @@ import com.adel.common.pagination.PaginatedResult
 import com.adel.features.comments.data.CommentRepository
 import com.adel.features.comments.domain.Comment
 import com.adel.features.comments.domain.CommentWithAuthor
+import com.adel.features.notifications.domain.NotificationType
+import com.adel.features.notifications.service.NotificationService
 import com.adel.features.posts.data.PostRepository
 
 class CommentService(
     private val repository: CommentRepository,
     private val postRepository: PostRepository,
+    private val notificationService: NotificationService
 ) {
     suspend fun getComment(id: Long): CommentWithAuthor? = repository.findByIdWithAuthor(id)
 
@@ -28,12 +31,19 @@ class CommentService(
         if (cleanContent.isEmpty()) return CreateCommentResult.ContentEmpty
         if (cleanContent.length > MAX_CONTENT_LENGTH) return CreateCommentResult.ContentTooLong
 
-        if (postRepository.findById(postId) == null) {
-            return CreateCommentResult.PostNotFound
-        }
+        val post = postRepository.findById(postId) ?: return CreateCommentResult.PostNotFound
 
         val comment = repository.create(userId, postId, cleanContent)
         postRepository.incrementCommentCount(postId)
+
+        // Trigger REPLY_POST notification
+        notificationService.createNotification(
+            senderId = userId,
+            receiverId = post.userId,
+            type = NotificationType.REPLY_POST,
+            postId = postId,
+            commentId = comment.id
+        )
 
         return CreateCommentResult.Success(comment)
     }
