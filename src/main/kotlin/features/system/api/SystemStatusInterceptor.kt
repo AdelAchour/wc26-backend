@@ -35,9 +35,9 @@ val SystemStatusInterceptor = createApplicationPlugin(
 
         // 2. Version Check
         val userAgent = call.request.headers["User-Agent"] ?: ""
-        // OkHttp sends "okhttp/x.y.z" by default; Android WebViews send "Android"
+        // OkHttp sends "okhttp/x.y.z" by default; Our Android client send "WC26-Android"
         val isMobileAndroid = userAgent.contains("okhttp", ignoreCase = true) ||
-                userAgent.contains("Android", ignoreCase = true)
+                userAgent.contains("WC26-Android", ignoreCase = true)
 
         val appVersionHeader = call.request.headers["X-App-Version"]?.toIntOrNull()
 
