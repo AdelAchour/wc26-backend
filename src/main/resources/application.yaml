@@ -21,4 +21,5 @@ jwt:
   issuer: "$JWT_ISSUER:wc26-backend"
   audience: "$JWT_AUDIENCE:wc26-clients"
   realm: "WC26"
-  expirationHours: 24
+  # Token expiration in hours (4320 hours = 180 days / approx. 6 months)
+  expirationHours: 4320
