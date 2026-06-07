@@ -15,7 +15,7 @@ fun Route.matchRoutes(service: MatchService) {
             }
             val stage = call.request.queryParameters["stage"]
             val limit = call.request.queryParameters["limit"]?.toIntOrNull()
-                ?.coerceIn(1, 100)
+                ?.coerceIn(1, 200)
                 ?: 20
             val offset = call.request.queryParameters["offset"]?.toLongOrNull()
                 ?.coerceAtLeast(0)
