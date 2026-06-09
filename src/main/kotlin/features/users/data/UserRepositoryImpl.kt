@@ -89,6 +89,12 @@ class UserRepositoryImpl : UserRepository {
         }
     }
 
+    override suspend fun findAll(): List<User> = dbQuery {
+        UserTable
+            .selectAll()
+            .map { it.toUser() }
+    }
+
     private fun findByIdInternal(id: Long): User? =
         UserTable
         .selectAll()

@@ -33,6 +33,11 @@ fun Route.userRoutes(service: UserService) {
         }
 
         authenticate(JWT_ADMIN_AUTH_NAME) {
+            get {
+                val users = service.getAllUsers()
+                call.respond(users.map { it.toDto() })
+            }
+
             patch("{id}") {
                 val id = call.parameters["id"]?.toLongOrNull()
                     ?: return@patch call.respond(HttpStatusCode.BadRequest, "Invalid user id")

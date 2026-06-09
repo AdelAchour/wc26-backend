@@ -2,8 +2,11 @@ package com.adel
 
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
 import io.ktor.http.headers
 import io.ktor.server.testing.testApplication
 import kotlin.test.*
@@ -64,6 +67,37 @@ class ServerTest {
             header("X-App-Version", "2") // 2 >= 1
         }
         assertEquals(HttpStatusCode.OK, response.status)
+    }
+
+    private fun generateTestToken(userId: Long, role: String): String {
+        val secret = "dev-secret-do-not-use-in-production-please-change-this-to-something-long-and-random"
+        val algorithm = com.auth0.jwt.algorithms.Algorithm.HMAC256(secret)
+        return com.auth0.jwt.JWT.create()
+            .withIssuer("wc26-backend")
+            .withAudience("wc26-clients")
+            .withSubject(userId.toString())
+            .withClaim("email", "test-$userId@example.com")
+            .withClaim("role", role)
+            .withIssuedAt(java.util.Date())
+            .withExpiresAt(java.util.Date(System.currentTimeMillis() + 3600 * 1000))
+            .sign(algorithm)
+    }
+
+    @Test
+    fun `test get users unauthorized`() = testApplication {
+        configure()
+        val response = client.get("/users")
+        assertEquals(HttpStatusCode.Forbidden, response.status)
+    }
+
+    @Test
+    fun `test get users forbidden for non-admin`() = testApplication {
+        configure()
+        val token = generateTestToken(123L, "user")
+        val response = client.get("/users") {
+            header("Authorization", "Bearer $token")
+        }
+        assertEquals(HttpStatusCode.Forbidden, response.status)
     }
 
 }

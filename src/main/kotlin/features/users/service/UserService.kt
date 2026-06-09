@@ -46,4 +46,6 @@ class UserService(
 
         return UpdateProfileResult.Success(updatedUser)
     }
+
+    suspend fun getAllUsers(): List<User> = repository.findAll()
 }
