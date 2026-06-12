@@ -1,9 +1,12 @@
 package com.adel.features.comments.service
 
+import com.adel.common.pagination.Cursor
+import com.adel.common.pagination.CursorPage
 import com.adel.features.comments.data.CommentLikeRepository
 import com.adel.features.comments.data.CommentRepository
 import com.adel.features.notifications.domain.NotificationType
 import com.adel.features.notifications.service.NotificationService
+import com.adel.features.users.domain.User
 
 class CommentLikeService(
     private val commentLikeRepository: CommentLikeRepository,
@@ -49,6 +52,12 @@ class CommentLikeService(
 
     suspend fun whichAreCommentsLikedBy(userId: Long, commentIds: List<Long>): Set<Long> =
         commentLikeRepository.areLikedBy(userId, commentIds)
+
+    suspend fun listLikersForComment(
+        commentId: Long,
+        cursor: Cursor?,
+        limit: Int,
+    ): CursorPage<User> = commentLikeRepository.findUsersWhoLikedComment(commentId, cursor, limit)
 }
 
 sealed interface CommentLikeResult {

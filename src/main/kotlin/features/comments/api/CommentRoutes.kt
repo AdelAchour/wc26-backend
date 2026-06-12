@@ -1,5 +1,6 @@
 package com.adel.features.comments.api
 
+import com.adel.common.pagination.Cursor
 import com.adel.common.pagination.toDto
 import com.adel.common.security.requireUserId
 import com.adel.common.security.userIdOrNull
@@ -8,6 +9,7 @@ import com.adel.features.comments.service.CommentLikeService
 import com.adel.features.comments.service.CommentLikeResult
 import com.adel.features.comments.service.CreateCommentResult
 import com.adel.features.comments.service.DeleteCommentResult
+import com.adel.features.users.api.toPublicDto
 import com.adel.plugins.JWT_AUTH_NAME
 import io.ktor.http.*
 import io.ktor.server.auth.*
@@ -44,6 +46,22 @@ fun Route.commentRoutes(
                 call.respond(
                     result.toDto { it.toDto(likedByCurrentUser = it.comment.id in likedByViewer) }
                 )
+            }
+        }
+
+        // Who liked this comment?
+        route("/comments/{commentId}/likes") {
+            get {
+                val commentId = call.parameters["commentId"]?.toLongOrNull()
+                    ?: return@get call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid comment id"))
+
+                val cursor = call.request.queryParameters["cursor"]?.let { Cursor.decode(it) }
+                val limit = call.request.queryParameters["limit"]?.toIntOrNull()
+                    ?.coerceIn(1, 100)
+                    ?: 20
+
+                val result = likeService.listLikersForComment(commentId, cursor, limit)
+                call.respond(result.toDto { it.toPublicDto() })
             }
         }
     }
