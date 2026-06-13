@@ -2,8 +2,13 @@ package com.adel
 
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.post
+import io.ktor.client.request.delete
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
 import kotlin.test.*
 
@@ -94,5 +99,50 @@ class ServerTest {
             header("Authorization", "Bearer $token")
         }
         assertEquals(HttpStatusCode.Forbidden, response.status)
+    }
+
+    @Test
+    fun `test push token registration unauthorized`() = testApplication {
+        configure()
+        val response = client.post("/users/push-token") {
+            contentType(ContentType.Application.Json)
+            setBody("""{"pushToken":"some-token"}""")
+        }
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
+    }
+
+    @Test
+    fun `test push token registration success and deletion`() = testApplication {
+        configure()
+
+        // 1. Register a test user with a dynamic username/email
+        val ts = System.currentTimeMillis()
+        val email = "test-fcm-$ts@example.com"
+        val username = "fcmuser$ts"
+        val registerUserRes = client.post("/auth/register") {
+            contentType(ContentType.Application.Json)
+            setBody("""{"email":"$email","username":"$username","password":"password123","displayName":"FCM User"}""")
+        }
+        assertEquals(HttpStatusCode.Created, registerUserRes.status)
+        val responseText = registerUserRes.bodyAsText()
+        val token = responseText.substringAfter("\"token\":\"").substringBefore("\"")
+
+        // 2. Register token
+        val registerResponse = client.post("/users/push-token") {
+            header("Authorization", "Bearer $token")
+            contentType(ContentType.Application.Json)
+            setBody("""{"pushToken":"my-test-fcm-token"}""")
+        }
+        assertEquals(HttpStatusCode.OK, registerResponse.status)
+        assertTrue(registerResponse.bodyAsText().contains("registered"))
+
+        // 3. Unregister token
+        val unregisterResponse = client.delete("/users/push-token") {
+            header("Authorization", "Bearer $token")
+            contentType(ContentType.Application.Json)
+            setBody("""{"pushToken":"my-test-fcm-token"}""")
+        }
+        assertEquals(HttpStatusCode.OK, unregisterResponse.status)
+        assertTrue(unregisterResponse.bodyAsText().contains("unregistered"))
     }
 }

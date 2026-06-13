@@ -6,7 +6,8 @@ import com.adel.features.notifications.domain.Notification
 import com.adel.features.notifications.domain.NotificationType
 
 class NotificationService(
-    private val repository: NotificationRepository
+    private val repository: NotificationRepository,
+    private val fcmService: FcmService
 ) {
     suspend fun createNotification(
         senderId: Long,
@@ -19,6 +20,15 @@ class NotificationService(
         if (senderId == receiverId) return
 
         repository.create(
+            senderId = senderId,
+            receiverId = receiverId,
+            type = type,
+            postId = postId,
+            commentId = commentId
+        )
+
+        // Dispatch FCM push notifications asynchronously
+        fcmService.sendPushNotificationAsync(
             senderId = senderId,
             receiverId = receiverId,
             type = type,

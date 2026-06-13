@@ -13,6 +13,7 @@ import com.adel.features.matches.api.adminMatchRoutes
 import com.adel.features.matches.api.matchRoutes
 import com.adel.features.matches.di.MatchComponent
 import com.adel.features.notifications.api.notificationRoutes
+import com.adel.features.notifications.api.pushTokenRoutes
 import com.adel.features.notifications.di.NotificationComponent
 import com.adel.features.posts.api.postRoutes
 import com.adel.features.posts.di.PostComponent
@@ -68,5 +69,6 @@ fun Application.configureRouting() {
         authRoutes(authComponent.service, userComponent.service)
         systemStatusRoutes(systemComponent.service)
         notificationRoutes(notificationComponent.service)
+        pushTokenRoutes(notificationComponent.pushTokenRepository)
     }
 }

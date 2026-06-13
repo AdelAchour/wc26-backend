@@ -11,3 +11,6 @@ local.properties
 # Loose JAR files in the repo root (build artifacts shouldn't live there)
 /*.jar
 /*.war
+
+# Firebase credentials key
+service-account-key.json

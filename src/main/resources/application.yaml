@@ -7,6 +7,7 @@ ktor:
       - com.adel.plugins.HttpKt.configureHttp
       - com.adel.plugins.SerializationKt.configureSerialization
       - com.adel.plugins.StatusPagesKt.configureStatusPages
+      - com.adel.plugins.FirebaseConfigKt.configureFirebase
       - com.adel.plugins.RoutingKt.configureRouting
 
 database:
@@ -23,3 +24,6 @@ jwt:
   realm: "WC26"
   # Token expiration in hours (4320 hours = 180 days / approx. 6 months)
   expirationHours: 4320
+
+firebase:
+  serviceAccountKeyPath: "$FIREBASE_KEY_PATH:service-account-key.json"

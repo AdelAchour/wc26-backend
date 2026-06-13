@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.adel"
-version = "2.2"
+version = "2.3"
 
 application {
     mainClass = "io.ktor.server.netty.EngineMain"
@@ -77,6 +77,7 @@ dependencies {
     implementation(libs.flyway.database.postgresql)
 
     implementation(libs.bcrypt)
+    implementation(libs.firebase.admin)
 
     implementation(ktorLibs.server.auth)
     implementation(ktorLibs.server.auth.jwt)
