@@ -4,6 +4,7 @@ import com.adel.common.database.dbQuery
 import com.adel.features.matches.domain.Match
 import com.adel.features.matches.domain.MatchStatus
 import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.andWhere
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.update
@@ -23,7 +24,7 @@ class MatchRepositoryImpl : MatchRepository {
                 status?.let { andWhere { MatchTable.status eq it.value } }
                 stage?.let { andWhere { MatchTable.stage eq it } }
             }
-            .orderBy(MatchTable.kickoffAt)
+            .orderBy(MatchTable.kickoffAt to if (status == MatchStatus.FINISHED) SortOrder.DESC else SortOrder.ASC)
             .limit(limit)
             .offset(offset)
             .map { it.toMatch() }
