@@ -10,28 +10,10 @@ import java.time.ZoneOffset
 class UserPushTokenRepositoryImpl : UserPushTokenRepository {
 
     override suspend fun registerToken(userId: Long, token: String): Unit = dbQuery {
-        val existing = UserPushTokenTable.selectAll()
-            .where { UserPushTokenTable.token eq token }
-            .singleOrNull()
-
-        if (existing == null) {
-            UserPushTokenTable.insert {
-                it[UserPushTokenTable.userId] = userId
-                it[UserPushTokenTable.token] = token
-                it[createdAt] = OffsetDateTime.now(ZoneOffset.UTC)
-            }
-        } else {
-            val existingUserId = existing[UserPushTokenTable.userId]
-            if (existingUserId == userId) {
-                UserPushTokenTable.update({ UserPushTokenTable.token eq token }) {
-                    it[createdAt] = OffsetDateTime.now(ZoneOffset.UTC)
-                }
-            } else {
-                UserPushTokenTable.update({ UserPushTokenTable.token eq token }) {
-                    it[UserPushTokenTable.userId] = userId
-                    it[createdAt] = OffsetDateTime.now(ZoneOffset.UTC)
-                }
-            }
+        UserPushTokenTable.upsert(UserPushTokenTable.token) {
+            it[UserPushTokenTable.userId] = userId
+            it[UserPushTokenTable.token] = token
+            it[createdAt] = OffsetDateTime.now(ZoneOffset.UTC)
         }
     }
 

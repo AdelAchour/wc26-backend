@@ -44,6 +44,9 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       JWT_ISSUER: ${JWT_ISSUER}
       JWT_AUDIENCE: ${JWT_AUDIENCE}
+      FIREBASE_KEY_PATH: ${FIREBASE_KEY_PATH}
+    volumes:
+      - ./service-account-key.json:/app/secrets/service-account-key.json
     ports:
       # 127.0.0.1: prefix is critical. Without it, Docker binds to
       # 0.0.0.0:8080 (public). With it, only processes on the VM
