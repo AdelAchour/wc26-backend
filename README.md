@@ -1,6 +1,6 @@
 # wc26-backend
 
-Ktor backend for the **FIFA World Cup 2026 Fan Social App**. This project serves as a robust, containerized, and feature-rich API service powering social interactions, match tracking, and real-time push notifications for football fans.
+Ktor backend for [WC26 Threads](https://wc26.adelash.dev/). This project serves as a robust, containerized, and feature-rich API service powering social interactions, match tracking, and real-time push notifications for football fans.
 
 ---
 
