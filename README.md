@@ -4,7 +4,7 @@ Ktor backend for the **FIFA World Cup 2026 Fan Social App**. This project serves
 
 ---
 
-## 🚀 Architecture & Tech Stack
+## Architecture & Tech Stack
 
 The application is built using a modern, reactive Kotlin stack with a modular, feature-oriented package structure.
 
@@ -19,7 +19,7 @@ The application is built using a modern, reactive Kotlin stack with a modular, f
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 The project organizes code by features rather than layers, making components cohesive and easy to locate:
 
@@ -53,7 +53,7 @@ src/main/kotlin/com/adel/
 
 ---
 
-## 🛠️ Local Development & Quick Start
+## Local Development & Quick Start
 
 ### Prerequisites
 - **JDK 21**
@@ -109,7 +109,7 @@ The application reads configuration parameters from `src/main/resources/applicat
 
 ---
 
-## 🔐 Authentication & Role Protection
+## Authentication & Role Protection
 
 The backend secures client requests using JWT.
 1. Authenticate or register using `POST /auth/login` or `POST /auth/register`.
@@ -124,7 +124,7 @@ The backend secures client requests using JWT.
 
 ---
 
-## 🎛️ System Configuration & Maintenance Interceptor
+## System Configuration & Maintenance Interceptor
 
 The application installs `SystemStatusInterceptor`, a custom middleware plugin that intercepts incoming requests to enforce rules:
 - **Maintenance Mode:** When enabled, the backend intercepts all non-bypassed requests and returns `503 Service Unavailable` with a maintenance payload.
@@ -133,7 +133,7 @@ The application installs `SystemStatusInterceptor`, a custom middleware plugin t
 
 ---
 
-## 🌐 API Reference
+## API Reference
 
 ### 1. Authentication & Profile (`/auth`)
 | Method | Endpoint | Auth | Description |
@@ -203,7 +203,7 @@ The application installs `SystemStatusInterceptor`, a custom middleware plugin t
 
 ---
 
-## 🧪 Testing
+## Testing
 
 The repository includes a comprehensive integration test suite.
 To execute tests locally, ensure your database container is running (`docker compose up -d` mapping host port `5432`) and execute:
