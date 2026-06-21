@@ -3,6 +3,7 @@ package com.adel.features.predictions.service
 import com.adel.common.pagination.PaginatedResult
 import com.adel.features.matches.data.MatchRepository
 import com.adel.features.matches.domain.Match
+import com.adel.features.matches.domain.MatchStatus
 import com.adel.features.matches.domain.TeamCodes
 import com.adel.features.predictions.data.PredictionRepository
 import com.adel.features.predictions.data.PredictionStandingsRepository
@@ -31,6 +32,22 @@ class PredictionService(
     /** The user's predictions for the given matches, keyed by match id (for a match-list page). */
     suspend fun getUserPredictionsForMatches(userId: Long, matchIds: Collection<Long>): Map<Long, Prediction> =
         repository.findByUserAndMatches(userId, matchIds)
+
+    /**
+     * A user's prediction history: their predictions on FINISHED matches, each
+     * paired with the match, most recent first. Finished-only so a user's still-open
+     * picks aren't exposed before kickoff.
+     */
+    suspend fun getUserPredictionHistory(userId: Long): List<Pair<Match, Prediction>> {
+        val predictions = repository.findByUser(userId)
+        if (predictions.isEmpty()) return emptyList()
+        val matches = matchRepository.findByIds(predictions.map { it.matchId })
+        val byMatch = predictions.associateBy { it.matchId }
+        return matches.values
+            .filter { it.status == MatchStatus.FINISHED }
+            .sortedByDescending { it.kickoffAt }
+            .mapNotNull { match -> byMatch[match.id]?.let { match to it } }
+    }
 
     /** Profile prediction stats for a user. Null if the user doesn't exist. */
     suspend fun getUserStats(userId: Long): PredictionStats? {

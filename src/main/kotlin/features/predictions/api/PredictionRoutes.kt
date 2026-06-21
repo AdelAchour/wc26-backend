@@ -3,6 +3,7 @@ package com.adel.features.predictions.api
 import com.adel.common.pagination.toDto
 import com.adel.common.security.requireUserId
 import com.adel.common.security.userIdOrNull
+import com.adel.features.matches.api.toDto as toMatchDto
 import com.adel.features.predictions.service.PredictionService
 import com.adel.features.predictions.service.UpsertPredictionResult
 import com.adel.plugins.JWT_AUTH_NAME
@@ -47,6 +48,16 @@ fun Route.userPredictionStatsRoutes(service: PredictionService) {
             ?: return@get call.respond(HttpStatusCode.NotFound, mapOf("error" to "User not found"))
 
         call.respond(stats.toDto())
+    }
+
+    // A user's prediction history — finished matches only, each with their
+    // prediction embedded (teams, actual score, points), most recent first.
+    get("/users/{id}/predictions") {
+        val id = call.parameters["id"]?.toLongOrNull()
+            ?: return@get call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid user id"))
+
+        val history = service.getUserPredictionHistory(id)
+        call.respond(history.map { (match, prediction) -> match.toMatchDto(prediction) })
     }
 }
 
