@@ -11,7 +11,7 @@ ktor:
       - com.adel.plugins.RoutingKt.configureRouting
 
 database:
-  jdbcUrl: "$DATABASE_URL:jdbc:postgresql://localhost:5432/wc26"
+  jdbcUrl: "$DATABASE_URL:jdbc:postgresql://localhost:5433/wc26"
   username: "$DATABASE_USER:wc26_user"
   password: "$DATABASE_PASSWORD:wc26_dev_password"
   driverClassName: "org.postgresql.Driver"
