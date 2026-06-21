@@ -4,6 +4,7 @@ import com.adel.common.database.dbQuery
 import com.adel.features.predictions.domain.LeaderboardEntry
 import com.adel.features.predictions.domain.MyRank
 import com.adel.features.predictions.domain.PredictionScoring
+import com.adel.features.predictions.domain.RankedStanding
 import com.adel.features.users.data.UserTable
 import com.adel.features.users.domain.User
 import com.adel.features.users.domain.UserRole
@@ -72,7 +73,10 @@ class PredictionStandingsRepositoryImpl : PredictionStandingsRepository {
         PredictionStandingsTable.selectAll().count()
     }
 
-    override suspend fun findMyRank(userId: Long): MyRank? = dbQuery {
+    override suspend fun findMyRank(userId: Long): MyRank? =
+        findRankedStanding(userId)?.let { MyRank(it.rank, it.totalPoints, it.exactCount) }
+
+    override suspend fun findRankedStanding(userId: Long): RankedStanding? = dbQuery {
         val me = PredictionStandingsTable
             .selectAll()
             .where { PredictionStandingsTable.userId eq userId }
@@ -81,6 +85,7 @@ class PredictionStandingsRepositoryImpl : PredictionStandingsRepository {
 
         val total = me[PredictionStandingsTable.totalPoints]
         val exact = me[PredictionStandingsTable.exactCount]
+        val graded = me[PredictionStandingsTable.gradedCount]
 
         // Count everyone strictly ahead per the ranking order.
         val ahead = PredictionStandingsTable
@@ -92,7 +97,7 @@ class PredictionStandingsRepositoryImpl : PredictionStandingsRepository {
             }
             .count()
 
-        MyRank(rank = ahead + 1, totalPoints = total, exactCount = exact)
+        RankedStanding(rank = ahead + 1, totalPoints = total, exactCount = exact, gradedCount = graded)
     }
 
     private fun ResultRow.toLeaderboardEntry(rank: Long): LeaderboardEntry = LeaderboardEntry(

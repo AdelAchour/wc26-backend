@@ -2,6 +2,7 @@ package com.adel.features.predictions.data
 
 import com.adel.features.predictions.domain.LeaderboardEntry
 import com.adel.features.predictions.domain.MyRank
+import com.adel.features.predictions.domain.RankedStanding
 
 interface PredictionStandingsRepository {
     /** Recompute and upsert standings for each user from their graded predictions. */
@@ -15,4 +16,7 @@ interface PredictionStandingsRepository {
 
     /** The given user's rank + standing, or null if they have no graded predictions yet. */
     suspend fun findMyRank(userId: Long): MyRank?
+
+    /** Like [findMyRank] but with the full standing (incl. graded count) for profile stats. */
+    suspend fun findRankedStanding(userId: Long): RankedStanding?
 }

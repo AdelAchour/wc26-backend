@@ -11,6 +11,9 @@ interface PredictionRepository {
     /** All predictions for a match — used by the scoring job when it finishes. */
     suspend fun findByMatch(matchId: Long): List<Prediction>
 
+    /** Total number of predictions a user has made (including ungraded). */
+    suspend fun countByUser(userId: Long): Long
+
     /**
      * Sets points_awarded for every prediction of [matchId] that picked the
      * given scoreline. Returns the number of rows updated. Idempotent — safe to

@@ -32,6 +32,13 @@ class PredictionRepositoryImpl : PredictionRepository {
             .map { it.toPrediction() }
     }
 
+    override suspend fun countByUser(userId: Long): Long = dbQuery {
+        PredictionTable
+            .selectAll()
+            .where { PredictionTable.userId eq userId }
+            .count()
+    }
+
     override suspend fun updatePointsForScoreline(
         matchId: Long,
         homeScore: Short,

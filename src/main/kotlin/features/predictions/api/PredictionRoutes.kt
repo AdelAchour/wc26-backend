@@ -37,6 +37,19 @@ fun Route.leaderboardRoutes(service: PredictionService) {
     }
 }
 
+/** Public per-user prediction stats for profile screens. */
+fun Route.userPredictionStatsRoutes(service: PredictionService) {
+    get("/users/{id}/prediction-stats") {
+        val id = call.parameters["id"]?.toLongOrNull()
+            ?: return@get call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid user id"))
+
+        val stats = service.getUserStats(id)
+            ?: return@get call.respond(HttpStatusCode.NotFound, mapOf("error" to "User not found"))
+
+        call.respond(stats.toDto())
+    }
+}
+
 fun Route.predictionRoutes(service: PredictionService) {
     authenticate(JWT_AUTH_NAME) {
         // All of the current user's predictions.

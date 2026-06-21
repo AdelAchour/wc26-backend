@@ -6,11 +6,15 @@ import com.adel.features.predictions.data.PredictionRepositoryImpl
 import com.adel.features.predictions.data.PredictionStandingsRepository
 import com.adel.features.predictions.data.PredictionStandingsRepositoryImpl
 import com.adel.features.predictions.service.PredictionService
+import com.adel.features.users.data.UserRepository
 
 class PredictionComponent(
     matchRepository: MatchRepository,
+    userRepository: UserRepository,
 ) {
     val repository: PredictionRepository by lazy { PredictionRepositoryImpl() }
     val standingsRepository: PredictionStandingsRepository by lazy { PredictionStandingsRepositoryImpl() }
-    val service: PredictionService by lazy { PredictionService(repository, standingsRepository, matchRepository) }
+    val service: PredictionService by lazy {
+        PredictionService(repository, standingsRepository, matchRepository, userRepository)
+    }
 }

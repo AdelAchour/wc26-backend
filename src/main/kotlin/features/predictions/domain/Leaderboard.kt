@@ -16,3 +16,21 @@ data class MyRank(
     val totalPoints: Int,
     val exactCount: Int,
 )
+
+/** A user's standing row plus their rank — the basis for profile stats. */
+data class RankedStanding(
+    val rank: Long,
+    val totalPoints: Int,
+    val exactCount: Int,
+    val gradedCount: Int,
+)
+
+/** Full prediction stats for a user's profile. */
+data class PredictionStats(
+    val userId: Long,
+    val rank: Long?,            // null until the user has a graded prediction
+    val totalPoints: Int,
+    val exactCount: Int,
+    val gradedCount: Int,
+    val predictionsCount: Int, // total predictions made, including ungraded
+)

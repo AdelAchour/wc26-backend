@@ -10,6 +10,8 @@ import com.adel.features.predictions.domain.LeaderboardEntry
 import com.adel.features.predictions.domain.MyRank
 import com.adel.features.predictions.domain.Prediction
 import com.adel.features.predictions.domain.PredictionScoring
+import com.adel.features.predictions.domain.PredictionStats
+import com.adel.features.users.data.UserRepository
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
@@ -17,9 +19,24 @@ class PredictionService(
     private val repository: PredictionRepository,
     private val standingsRepository: PredictionStandingsRepository,
     private val matchRepository: MatchRepository,
+    private val userRepository: UserRepository,
 ) {
     suspend fun getMyPredictions(userId: Long): List<Prediction> =
         repository.findByUser(userId)
+
+    /** Profile prediction stats for a user. Null if the user doesn't exist. */
+    suspend fun getUserStats(userId: Long): PredictionStats? {
+        userRepository.findById(userId) ?: return null
+        val standing = standingsRepository.findRankedStanding(userId)
+        return PredictionStats(
+            userId = userId,
+            rank = standing?.rank,
+            totalPoints = standing?.totalPoints ?: 0,
+            exactCount = standing?.exactCount ?: 0,
+            gradedCount = standing?.gradedCount ?: 0,
+            predictionsCount = repository.countByUser(userId).toInt(),
+        )
+    }
 
     suspend fun getLeaderboard(limit: Int, offset: Long): PaginatedResult<LeaderboardEntry> =
         PaginatedResult(
