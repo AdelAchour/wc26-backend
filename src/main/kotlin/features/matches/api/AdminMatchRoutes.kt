@@ -1,9 +1,10 @@
 package com.adel.features.matches.api
 
-import com.adel.features.matches.domain.Match
+import com.adel.common.security.userIdOrNull
 import com.adel.features.matches.domain.MatchStatus
 import com.adel.features.matches.service.MatchService
 import com.adel.features.matches.service.UpdateMatchResult
+import com.adel.features.predictions.service.PredictionService
 import com.adel.plugins.JWT_ADMIN_AUTH_NAME
 import io.ktor.http.*
 import io.ktor.server.auth.*
@@ -23,10 +24,7 @@ data class UpdateMatchRequest(
 
 fun Route.adminMatchRoutes(
     service: MatchService,
-    // Invoked after a match is finalized (FINISHED + both scores), so the
-    // predictions feature can grade its predictions. Defaults to a no-op to
-    // keep the matches feature decoupled from predictions.
-    onMatchFinished: suspend (Match) -> Unit = {},
+    predictionService: PredictionService,
 ) {
     authenticate(JWT_ADMIN_AUTH_NAME) {
         patch("/admin/matches/{id}") {
@@ -61,9 +59,12 @@ fun Route.adminMatchRoutes(
                     if (affectsResult && match.status == MatchStatus.FINISHED &&
                         match.homeScore != null && match.awayScore != null
                     ) {
-                        onMatchFinished(match)
+                        predictionService.gradeMatch(match)
                     }
-                    call.respond(match.toDto())
+                    // Embed the admin's own (possibly freshly graded) prediction.
+                    val adminId = call.userIdOrNull()
+                    val prediction = adminId?.let { predictionService.getUserPrediction(it, match.id) }
+                    call.respond(match.toDto(prediction))
                 }
                 UpdateMatchResult.NotFound -> call.respond(HttpStatusCode.NotFound, mapOf("error" to "Match not found"))
                 UpdateMatchResult.InvalidScores -> call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Both scores must be provided together and must be non-negative"))

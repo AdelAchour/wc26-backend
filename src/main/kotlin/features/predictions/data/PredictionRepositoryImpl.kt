@@ -25,6 +25,18 @@ class PredictionRepositoryImpl : PredictionRepository {
         findByUserAndMatchInternal(userId, matchId)
     }
 
+    override suspend fun findByUserAndMatches(
+        userId: Long,
+        matchIds: Collection<Long>,
+    ): Map<Long, Prediction> = dbQuery {
+        if (matchIds.isEmpty()) return@dbQuery emptyMap()
+        PredictionTable
+            .selectAll()
+            .where { (PredictionTable.userId eq userId) and (PredictionTable.matchId inList matchIds) }
+            .map { it.toPrediction() }
+            .associateBy { it.matchId }
+    }
+
     override suspend fun findByMatch(matchId: Long): List<Prediction> = dbQuery {
         PredictionTable
             .selectAll()

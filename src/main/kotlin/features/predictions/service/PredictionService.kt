@@ -24,6 +24,14 @@ class PredictionService(
     suspend fun getMyPredictions(userId: Long): List<Prediction> =
         repository.findByUser(userId)
 
+    /** The user's prediction for one match (for embedding in a match response). */
+    suspend fun getUserPrediction(userId: Long, matchId: Long): Prediction? =
+        repository.findByUserAndMatch(userId, matchId)
+
+    /** The user's predictions for the given matches, keyed by match id (for a match-list page). */
+    suspend fun getUserPredictionsForMatches(userId: Long, matchIds: Collection<Long>): Map<Long, Prediction> =
+        repository.findByUserAndMatches(userId, matchIds)
+
     /** Profile prediction stats for a user. Null if the user doesn't exist. */
     suspend fun getUserStats(userId: Long): PredictionStats? {
         userRepository.findById(userId) ?: return null

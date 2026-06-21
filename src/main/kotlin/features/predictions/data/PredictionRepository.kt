@@ -8,6 +8,9 @@ interface PredictionRepository {
 
     suspend fun findByUserAndMatch(userId: Long, matchId: Long): Prediction?
 
+    /** The user's predictions for a specific set of matches, keyed by match id. */
+    suspend fun findByUserAndMatches(userId: Long, matchIds: Collection<Long>): Map<Long, Prediction>
+
     /** All predictions for a match — used by the scoring job when it finishes. */
     suspend fun findByMatch(matchId: Long): List<Prediction>
 

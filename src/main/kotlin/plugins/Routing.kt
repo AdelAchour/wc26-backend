@@ -65,10 +65,8 @@ fun Application.configureRouting() {
             )
         }
 
-        matchRoutes(matchComponent.service)
-        adminMatchRoutes(matchComponent.service) { finishedMatch ->
-            predictionComponent.service.gradeMatch(finishedMatch)
-        }
+        matchRoutes(matchComponent.service, predictionComponent.service)
+        adminMatchRoutes(matchComponent.service, predictionComponent.service)
         userRoutes(userComponent.service)
         postRoutes(postComponent.service, likeComponent.service, matchComponent.service)
         likeRoutes(likeComponent.service, matchComponent.service)
