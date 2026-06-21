@@ -24,7 +24,12 @@ class MatchRepositoryImpl : MatchRepository {
                 status?.let { andWhere { MatchTable.status eq it.value } }
                 stage?.let { andWhere { MatchTable.stage eq it } }
             }
-            .orderBy(MatchTable.kickoffAt to if (status == MatchStatus.FINISHED) SortOrder.DESC else SortOrder.ASC)
+            .orderBy(
+                MatchTable.kickoffAt to if (status == MatchStatus.FINISHED) SortOrder.DESC else SortOrder.ASC,
+                // Stable tiebreaker — group games share kickoff times, so without
+                // this, LIMIT/OFFSET paging can skip or duplicate rows.
+                MatchTable.id to SortOrder.ASC,
+            )
             .limit(limit)
             .offset(offset)
             .map { it.toMatch() }
