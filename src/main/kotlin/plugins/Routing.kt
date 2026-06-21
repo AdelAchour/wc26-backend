@@ -18,6 +18,7 @@ import com.adel.features.notifications.di.NotificationComponent
 import com.adel.features.posts.api.postRoutes
 import com.adel.features.posts.di.PostComponent
 import com.adel.features.predictions.api.predictionRoutes
+import com.adel.features.predictions.di.PredictionComponent
 import com.adel.features.users.api.userRoutes
 import com.adel.features.users.di.UserComponent
 import com.adel.features.system.api.systemStatusRoutes
@@ -40,6 +41,7 @@ fun Application.configureRouting() {
     val commentComponent = CommentComponent(postComponent.repository, notificationComponent.service)
     val authComponent = AuthComponent(userComponent.repository, jwtConfig)
     val systemComponent = SystemComponent()
+    val predictionComponent = PredictionComponent(matchComponent.repository)
 
     // Install system config request interceptor middleware
     install(SystemStatusInterceptor) {
@@ -71,6 +73,6 @@ fun Application.configureRouting() {
         systemStatusRoutes(systemComponent.service)
         notificationRoutes(notificationComponent.service)
         pushTokenRoutes(notificationComponent.pushTokenRepository)
-        predictionRoutes()
+        predictionRoutes(predictionComponent.service)
     }
 }
