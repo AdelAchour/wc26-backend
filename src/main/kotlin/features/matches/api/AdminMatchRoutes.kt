@@ -43,6 +43,11 @@ fun Route.adminMatchRoutes(
                     )
             }
 
+            // Only the score or status reaching FINISHED affects grading. Edits to
+            // other fields (e.g. a knockout team name) on an already-finished match
+            // shouldn't trigger a re-grade.
+            val affectsResult = request.homeScore != null || request.awayScore != null || status != null
+
             when (val result = service.updateMatchAdmin(
                 id = id,
                 homeScore = request.homeScore,
@@ -53,7 +58,9 @@ fun Route.adminMatchRoutes(
             )) {
                 is UpdateMatchResult.Success -> {
                     val match = result.match
-                    if (match.status == MatchStatus.FINISHED && match.homeScore != null && match.awayScore != null) {
+                    if (affectsResult && match.status == MatchStatus.FINISHED &&
+                        match.homeScore != null && match.awayScore != null
+                    ) {
                         onMatchFinished(match)
                     }
                     call.respond(match.toDto())
