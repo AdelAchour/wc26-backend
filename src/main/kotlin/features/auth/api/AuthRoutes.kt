@@ -4,6 +4,7 @@ import com.adel.common.security.requireUserId
 import com.adel.features.auth.service.AuthService
 import com.adel.features.auth.service.LoginResult
 import com.adel.features.auth.service.RegisterResult
+import com.adel.features.auth.service.ResetPasswordResult
 import com.adel.features.users.api.toDto
 import com.adel.features.users.data.UpdateProfileParams
 import com.adel.features.users.service.UpdateProfileResult
@@ -74,6 +75,26 @@ fun Route.authRoutes(
                 )
                 LoginResult.InvalidCredentials ->
                     call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Invalid credentials"))
+            }
+        }
+
+        post("forgot-password") {
+            val request = call.receive<ForgotPasswordRequest>()
+            service.forgotPassword(request.email)
+            // Always return 200 regardless of whether the email exists
+            call.respond(HttpStatusCode.OK, mapOf("message" to "If an account with this email exists, a reset code has been sent."))
+        }
+
+        post("reset-password") {
+            val request = call.receive<ResetPasswordRequest>()
+
+            when (service.resetPassword(request.email, request.code, request.newPassword)) {
+                ResetPasswordResult.Success ->
+                    call.respond(HttpStatusCode.OK, mapOf("message" to "Password reset successful."))
+                ResetPasswordResult.PasswordTooShort ->
+                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Password must be at least 8 characters"))
+                ResetPasswordResult.InvalidOrExpiredCode ->
+                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid or expired reset code"))
             }
         }
 

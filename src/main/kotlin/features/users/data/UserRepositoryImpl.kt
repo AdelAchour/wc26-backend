@@ -89,6 +89,14 @@ class UserRepositoryImpl : UserRepository {
         }
     }
 
+    override suspend fun updatePasswordHash(email: String, newPasswordHash: String): Boolean = dbQuery {
+        val updatedRows = UserTable.update({ UserTable.email eq email }) {
+            it[UserTable.passwordHash] = newPasswordHash
+            it[UserTable.updatedAt] = OffsetDateTime.now()
+        }
+        updatedRows > 0
+    }
+
     override suspend fun findAll(): List<User> = dbQuery {
         UserTable
             .selectAll()

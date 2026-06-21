@@ -26,5 +26,6 @@ interface UserRepository {
     suspend fun emailExists(email: String): Boolean
     suspend fun usernameExists(username: String): Boolean
     suspend fun updateProfile(id: Long, params: UpdateProfileParams): User?
+    suspend fun updatePasswordHash(email: String, newPasswordHash: String): Boolean
     suspend fun findAll(): List<User>
 }

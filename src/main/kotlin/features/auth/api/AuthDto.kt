@@ -32,3 +32,15 @@ data class UpdateProfileRequest(
     val bio: String? = null,
 )
 
+@Serializable
+data class ForgotPasswordRequest(
+    val email: String,
+)
+
+@Serializable
+data class ResetPasswordRequest(
+    val email: String,
+    val code: String,
+    val newPassword: String,
+)
+

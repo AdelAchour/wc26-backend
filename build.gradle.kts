@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.adel"
-version = "2.6"
+version = "2.7"
 
 application {
     mainClass = "io.ktor.server.netty.EngineMain"
@@ -78,6 +78,10 @@ dependencies {
 
     implementation(libs.bcrypt)
     implementation(libs.firebase.admin)
+
+    // Jakarta Mail — SMTP email sending
+    implementation(libs.jakarta.mail.api)
+    implementation(libs.angus.mail)
 
     implementation(ktorLibs.server.auth)
     implementation(ktorLibs.server.auth.jwt)

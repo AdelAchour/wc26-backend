@@ -27,3 +27,12 @@ jwt:
 
 firebase:
   serviceAccountKeyPath: "$FIREBASE_KEY_PATH:service-account-key.json"
+
+smtp:
+  host: "$SMTP_HOST:smtp.example.com"
+  port: "$SMTP_PORT:587"
+  username: "$SMTP_USERNAME:no-reply@example.com"
+  password: "$SMTP_PASSWORD:changeme"
+  fromAddress: "$SMTP_FROM_ADDRESS:no-reply@example.com"
+  fromName: "$SMTP_FROM_NAME:WC26"
+  startTls: "$SMTP_START_TLS:true"

@@ -2,7 +2,9 @@ package com.adel.plugins
 
 import com.adel.common.data.BuildInfo
 import com.adel.common.data.HealthResponse
+import com.adel.common.email.EmailService
 import com.adel.config.loadJwtConfig
+import com.adel.config.loadSmtpConfig
 import com.adel.features.auth.api.authRoutes
 import com.adel.features.auth.di.AuthComponent
 import com.adel.features.comments.api.commentRoutes
@@ -34,14 +36,16 @@ import java.time.ZoneOffset
 
 fun Application.configureRouting() {
     val jwtConfig = loadJwtConfig()
+    val smtpConfig = loadSmtpConfig()
 
+    val emailService = EmailService(smtpConfig)
     val matchComponent = MatchComponent()
     val notificationComponent = NotificationComponent()
     val userComponent = UserComponent()
     val postComponent = PostComponent(matchComponent.repository)
     val likeComponent = LikeComponent(postComponent.repository, notificationComponent.service)
     val commentComponent = CommentComponent(postComponent.repository, notificationComponent.service)
-    val authComponent = AuthComponent(userComponent.repository, jwtConfig)
+    val authComponent = AuthComponent(userComponent.repository, jwtConfig, emailService)
     val systemComponent = SystemComponent()
     val predictionComponent = PredictionComponent(matchComponent.repository, userComponent.repository, notificationComponent.fcmService)
 
