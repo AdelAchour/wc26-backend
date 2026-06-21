@@ -17,6 +17,7 @@ import com.adel.features.notifications.api.pushTokenRoutes
 import com.adel.features.notifications.di.NotificationComponent
 import com.adel.features.posts.api.postRoutes
 import com.adel.features.posts.di.PostComponent
+import com.adel.features.predictions.api.predictionRoutes
 import com.adel.features.users.api.userRoutes
 import com.adel.features.users.di.UserComponent
 import com.adel.features.system.api.systemStatusRoutes
@@ -70,5 +71,6 @@ fun Application.configureRouting() {
         systemStatusRoutes(systemComponent.service)
         notificationRoutes(notificationComponent.service)
         pushTokenRoutes(notificationComponent.pushTokenRepository)
+        predictionRoutes()
     }
 }
