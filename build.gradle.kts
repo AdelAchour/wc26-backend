@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.adel"
-version = "2.4"
+version = "2.5"
 
 application {
     mainClass = "io.ktor.server.netty.EngineMain"
