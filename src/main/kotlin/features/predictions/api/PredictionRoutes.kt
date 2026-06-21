@@ -1,6 +1,8 @@
 package com.adel.features.predictions.api
 
+import com.adel.common.pagination.toDto
 import com.adel.common.security.requireUserId
+import com.adel.common.security.userIdOrNull
 import com.adel.features.predictions.service.PredictionService
 import com.adel.features.predictions.service.UpsertPredictionResult
 import com.adel.plugins.JWT_AUTH_NAME
@@ -9,6 +11,31 @@ import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+
+/**
+ * Public leaderboard. Optional auth — when the caller is logged in, the
+ * response also carries their own rank for the sticky "you" row.
+ */
+fun Route.leaderboardRoutes(service: PredictionService) {
+    authenticate(JWT_AUTH_NAME, optional = true) {
+        get("/leaderboard") {
+            val limit = call.request.queryParameters["limit"]?.toIntOrNull()
+                ?.coerceIn(1, 100) ?: 20
+            val offset = call.request.queryParameters["offset"]?.toLongOrNull()
+                ?.coerceAtLeast(0) ?: 0L
+
+            val page = service.getLeaderboard(limit, offset)
+            val me = call.userIdOrNull()?.let { service.getMyRank(it) }
+
+            call.respond(
+                LeaderboardResponseDto(
+                    entries = page.toDto { it.toDto() },
+                    me = me?.toDto(),
+                )
+            )
+        }
+    }
+}
 
 fun Route.predictionRoutes(service: PredictionService) {
     authenticate(JWT_AUTH_NAME) {

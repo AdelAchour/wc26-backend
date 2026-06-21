@@ -1,9 +1,13 @@
 package com.adel.features.predictions.service
 
+import com.adel.common.pagination.PaginatedResult
 import com.adel.features.matches.data.MatchRepository
 import com.adel.features.matches.domain.Match
 import com.adel.features.matches.domain.TeamCodes
 import com.adel.features.predictions.data.PredictionRepository
+import com.adel.features.predictions.data.PredictionStandingsRepository
+import com.adel.features.predictions.domain.LeaderboardEntry
+import com.adel.features.predictions.domain.MyRank
 import com.adel.features.predictions.domain.Prediction
 import com.adel.features.predictions.domain.PredictionScoring
 import java.time.OffsetDateTime
@@ -11,10 +15,21 @@ import java.time.ZoneOffset
 
 class PredictionService(
     private val repository: PredictionRepository,
+    private val standingsRepository: PredictionStandingsRepository,
     private val matchRepository: MatchRepository,
 ) {
     suspend fun getMyPredictions(userId: Long): List<Prediction> =
         repository.findByUser(userId)
+
+    suspend fun getLeaderboard(limit: Int, offset: Long): PaginatedResult<LeaderboardEntry> =
+        PaginatedResult(
+            items = standingsRepository.topEntries(limit, offset),
+            total = standingsRepository.count(),
+            limit = limit,
+            offset = offset,
+        )
+
+    suspend fun getMyRank(userId: Long): MyRank? = standingsRepository.findMyRank(userId)
 
     /**
      * Create or update the user's prediction for a match. The server is the
@@ -56,13 +71,18 @@ class PredictionService(
         val actualHome = match.homeScore ?: return
         val actualAway = match.awayScore ?: return
 
-        repository.findByMatch(match.id)
+        val predictions = repository.findByMatch(match.id)
+
+        predictions
             .map { it.homeScore to it.awayScore }
             .distinct()
             .forEach { (predHome, predAway) ->
                 val points = PredictionScoring.pointsFor(predHome, predAway, actualHome, actualAway)
                 repository.updatePointsForScoreline(match.id, predHome, predAway, points)
             }
+
+        // Refresh leaderboard standings for everyone who predicted this match.
+        standingsRepository.recomputeForUsers(predictions.map { it.userId })
     }
 
     /** A match is predictable only once both teams resolve to real team codes. */
