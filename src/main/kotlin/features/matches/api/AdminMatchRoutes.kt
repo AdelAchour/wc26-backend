@@ -1,5 +1,6 @@
 package com.adel.features.matches.api
 
+import com.adel.features.matches.domain.Match
 import com.adel.features.matches.domain.MatchStatus
 import com.adel.features.matches.service.MatchService
 import com.adel.features.matches.service.UpdateMatchResult
@@ -20,7 +21,13 @@ data class UpdateMatchRequest(
     val awayTeam: String? = null,
 )
 
-fun Route.adminMatchRoutes(service: MatchService) {
+fun Route.adminMatchRoutes(
+    service: MatchService,
+    // Invoked after a match is finalized (FINISHED + both scores), so the
+    // predictions feature can grade its predictions. Defaults to a no-op to
+    // keep the matches feature decoupled from predictions.
+    onMatchFinished: suspend (Match) -> Unit = {},
+) {
     authenticate(JWT_ADMIN_AUTH_NAME) {
         patch("/admin/matches/{id}") {
             val id = call.parameters["id"]?.toLongOrNull()
@@ -44,7 +51,13 @@ fun Route.adminMatchRoutes(service: MatchService) {
                 homeTeam = request.homeTeam,
                 awayTeam = request.awayTeam,
             )) {
-                is UpdateMatchResult.Success -> call.respond(result.match.toDto())
+                is UpdateMatchResult.Success -> {
+                    val match = result.match
+                    if (match.status == MatchStatus.FINISHED && match.homeScore != null && match.awayScore != null) {
+                        onMatchFinished(match)
+                    }
+                    call.respond(match.toDto())
+                }
                 UpdateMatchResult.NotFound -> call.respond(HttpStatusCode.NotFound, mapOf("error" to "Match not found"))
                 UpdateMatchResult.InvalidScores -> call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Both scores must be provided together and must be non-negative"))
                 UpdateMatchResult.NothingToUpdate -> call.respond(HttpStatusCode.BadRequest, mapOf("error" to "At least one field must be provided"))

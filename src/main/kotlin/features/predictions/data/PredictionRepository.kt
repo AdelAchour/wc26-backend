@@ -8,6 +8,21 @@ interface PredictionRepository {
 
     suspend fun findByUserAndMatch(userId: Long, matchId: Long): Prediction?
 
+    /** All predictions for a match — used by the scoring job when it finishes. */
+    suspend fun findByMatch(matchId: Long): List<Prediction>
+
+    /**
+     * Sets points_awarded for every prediction of [matchId] that picked the
+     * given scoreline. Returns the number of rows updated. Idempotent — safe to
+     * re-run if a match result is later corrected.
+     */
+    suspend fun updatePointsForScoreline(
+        matchId: Long,
+        homeScore: Short,
+        awayScore: Short,
+        points: Short,
+    ): Int
+
     /**
      * Creates or updates the user's prediction for a match (one per user+match,
      * enforced by the unique constraint). On update, refreshes updated_at and

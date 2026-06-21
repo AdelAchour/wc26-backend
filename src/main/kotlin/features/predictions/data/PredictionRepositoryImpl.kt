@@ -25,6 +25,28 @@ class PredictionRepositoryImpl : PredictionRepository {
         findByUserAndMatchInternal(userId, matchId)
     }
 
+    override suspend fun findByMatch(matchId: Long): List<Prediction> = dbQuery {
+        PredictionTable
+            .selectAll()
+            .where { PredictionTable.matchId eq matchId }
+            .map { it.toPrediction() }
+    }
+
+    override suspend fun updatePointsForScoreline(
+        matchId: Long,
+        homeScore: Short,
+        awayScore: Short,
+        points: Short,
+    ): Int = dbQuery {
+        PredictionTable.update({
+            (PredictionTable.matchId eq matchId) and
+                (PredictionTable.homeScore eq homeScore) and
+                (PredictionTable.awayScore eq awayScore)
+        }) {
+            it[PredictionTable.pointsAwarded] = points
+        }
+    }
+
     override suspend fun upsert(
         userId: Long,
         matchId: Long,

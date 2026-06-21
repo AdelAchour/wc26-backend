@@ -5,6 +5,7 @@ import com.adel.features.matches.domain.Match
 import com.adel.features.matches.domain.TeamCodes
 import com.adel.features.predictions.data.PredictionRepository
 import com.adel.features.predictions.domain.Prediction
+import com.adel.features.predictions.domain.PredictionScoring
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
@@ -43,6 +44,25 @@ class PredictionService(
 
         val prediction = repository.upsert(userId, matchId, homeScore, awayScore)
         return UpsertPredictionResult.Success(prediction)
+    }
+
+    /**
+     * Grade every prediction for a finished match. Computes points once per
+     * distinct predicted scoreline and bulk-updates. Idempotent — re-running
+     * after a corrected result simply recomputes. No-op if the match has no
+     * final score yet.
+     */
+    suspend fun gradeMatch(match: Match) {
+        val actualHome = match.homeScore ?: return
+        val actualAway = match.awayScore ?: return
+
+        repository.findByMatch(match.id)
+            .map { it.homeScore to it.awayScore }
+            .distinct()
+            .forEach { (predHome, predAway) ->
+                val points = PredictionScoring.pointsFor(predHome, predAway, actualHome, actualAway)
+                repository.updatePointsForScoreline(match.id, predHome, predAway, points)
+            }
     }
 
     /** A match is predictable only once both teams resolve to real team codes. */
