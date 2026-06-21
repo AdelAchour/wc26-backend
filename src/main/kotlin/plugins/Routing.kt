@@ -43,7 +43,7 @@ fun Application.configureRouting() {
     val commentComponent = CommentComponent(postComponent.repository, notificationComponent.service)
     val authComponent = AuthComponent(userComponent.repository, jwtConfig)
     val systemComponent = SystemComponent()
-    val predictionComponent = PredictionComponent(matchComponent.repository, userComponent.repository)
+    val predictionComponent = PredictionComponent(matchComponent.repository, userComponent.repository, notificationComponent.fcmService)
 
     // Install system config request interceptor middleware
     install(SystemStatusInterceptor) {

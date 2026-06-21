@@ -125,7 +125,65 @@ class FcmService(
         }
     }
 
+    /**
+     * Sends the same push (title/body) to many users at once — used when a match
+     * grades and we notify all winners in a points tier. Carries [matchId] so the
+     * client can deep-link to the match. Multicast is chunked to FCM's 500/token cap.
+     */
+    fun sendPredictionGradedPushAsync(
+        receiverIds: List<Long>,
+        title: String,
+        body: String,
+        matchId: Long,
+    ) {
+        if (FirebaseApp.getApps().isEmpty()) {
+            logger.info("[FCM] Firebase not initialized. Skipping prediction push.")
+            return
+        }
+        if (receiverIds.isEmpty()) return
+
+        fcmScope.launch {
+            try {
+                val tokens = pushTokenRepository.getTokensForUsers(receiverIds)
+                if (tokens.isEmpty()) return@launch
+
+                tokens.chunked(FCM_MULTICAST_LIMIT).forEach { chunk ->
+                    val message = MulticastMessage.builder()
+                        .addAllTokens(chunk)
+                        .setNotification(
+                            Notification.builder()
+                                .setTitle(title)
+                                .setBody(body)
+                                .build()
+                        )
+                        .putData("matchId", matchId.toString())
+                        .build()
+
+                    val response = FirebaseMessaging.getInstance().sendEachForMulticastAsync(message).get()
+                    logger.info("[FCM] Prediction push: success ${response.successCount}, failure ${response.failureCount}")
+
+                    if (response.failureCount > 0) {
+                        val toRemove = mutableListOf<String>()
+                        response.responses.forEachIndexed { index, res ->
+                            if (!res.isSuccessful) {
+                                val code = res.exception?.messagingErrorCode?.name
+                                if (code == "UNREGISTERED" || code == "INVALID_ARGUMENT") toRemove.add(chunk[index])
+                            }
+                        }
+                        if (toRemove.isNotEmpty()) pushTokenRepository.deleteTokens(toRemove)
+                    }
+                }
+            } catch (e: Exception) {
+                logger.error("[FCM] Failed to dispatch prediction push", e)
+            }
+        }
+    }
+
     private fun String.takeSnippet(limit: Int = 100): String {
         return if (length <= limit) this else take(limit) + "..."
+    }
+
+    private companion object {
+        const val FCM_MULTICAST_LIMIT = 500
     }
 }

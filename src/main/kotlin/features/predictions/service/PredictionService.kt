@@ -5,6 +5,7 @@ import com.adel.features.matches.data.MatchRepository
 import com.adel.features.matches.domain.Match
 import com.adel.features.matches.domain.MatchStatus
 import com.adel.features.matches.domain.TeamCodes
+import com.adel.features.notifications.service.FcmService
 import com.adel.features.predictions.data.PredictionRepository
 import com.adel.features.predictions.data.PredictionStandingsRepository
 import com.adel.features.predictions.domain.LeaderboardEntry
@@ -21,6 +22,7 @@ class PredictionService(
     private val standingsRepository: PredictionStandingsRepository,
     private val matchRepository: MatchRepository,
     private val userRepository: UserRepository,
+    private val fcmService: FcmService,
 ) {
     suspend fun getMyPredictions(userId: Long): List<Prediction> =
         repository.findByUser(userId)
@@ -125,6 +127,47 @@ class PredictionService(
 
         // Refresh leaderboard standings for everyone who predicted this match.
         standingsRepository.recomputeForUsers(predictions.map { it.userId })
+
+        notifyNewWinners(match, predictions, actualHome, actualAway)
+    }
+
+    /**
+     * Push a "you scored" notification to winners — but only those graded for the
+     * FIRST time this run (pointsAwarded was null), so a score correction / re-grade
+     * never re-pings anyone. Grouped by points tier so it's one message per tier.
+     */
+    private fun notifyNewWinners(
+        match: Match,
+        predictionsBeforeGrading: List<Prediction>,
+        actualHome: Short,
+        actualAway: Short,
+    ) {
+        val winnersByTier = predictionsBeforeGrading
+            .filter { it.pointsAwarded == null }
+            .mapNotNull { p ->
+                val points = PredictionScoring.pointsFor(p.homeScore, p.awayScore, actualHome, actualAway).toInt()
+                if (points > 0) p.userId to points else null
+            }
+            .groupBy({ it.second }, { it.first })
+
+        winnersByTier.forEach { (points, userIds) ->
+            val (title, body) = predictionPushCopy(match, actualHome, actualAway, points)
+            fcmService.sendPredictionGradedPushAsync(userIds, title, body, match.id)
+        }
+    }
+
+    private fun predictionPushCopy(
+        match: Match,
+        actualHome: Short,
+        actualAway: Short,
+        points: Int,
+    ): Pair<String, String> {
+        val scoreline = "${match.homeTeam} $actualHome–$actualAway ${match.awayTeam}"
+        return if (points >= PredictionScoring.EXACT_SCORE_POINTS) {
+            "🎯 Exact score! +$points pts" to "You nailed $scoreline ✨"
+        } else {
+            "✅ Correct result! +$points pts" to "Good call on $scoreline ⚽"
+        }
     }
 
     /** A match is predictable only once both teams resolve to real team codes. */

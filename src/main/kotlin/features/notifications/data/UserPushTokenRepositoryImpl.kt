@@ -29,6 +29,13 @@ class UserPushTokenRepositoryImpl : UserPushTokenRepository {
             .map { it[UserPushTokenTable.token] }
     }
 
+    override suspend fun getTokensForUsers(userIds: Collection<Long>): List<String> = dbQuery {
+        if (userIds.isEmpty()) return@dbQuery emptyList()
+        UserPushTokenTable.select(UserPushTokenTable.token)
+            .where { UserPushTokenTable.userId inList userIds }
+            .map { it[UserPushTokenTable.token] }
+    }
+
     override suspend fun deleteTokens(tokens: List<String>): Unit = dbQuery {
         if (tokens.isNotEmpty()) {
             UserPushTokenTable.deleteWhere {
